@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -14,6 +15,12 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.MotionEventCompat;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Random;
+
+
 
 public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.OnTouchListener {
     private SurfaceHolder holder; //Controla surfaceview para manejar el dibujo en pantalla
@@ -27,16 +34,29 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     private int frameCount = 0;
     private static final int textoInicialX = 50;
     private static final int textoInicialY = 20;
-
     private Jugador jugador;
-
+    private ArrayList<Enemigo> enemigos=new ArrayList<>();
+    private int[] enemigosImagenes={R.drawable.enemy1,R.drawable.enemy2,R.drawable.enemy3,R.drawable.enemy4,R.drawable.enemy5,R.drawable.enemy6};
+    private Random random=new Random();
     private BucleJuego bucleJuego;
+    private Handler handler=new Handler();
+    private Runnable generarEnemigo=new Runnable() {
+        @Override
+        public void run() {
+            int imagenId=enemigosImagenes[new Random().nextInt(enemigosImagenes.length)];
+            enemigos.add(new Enemigo(Juego.this,BitmapFactory.decodeResource(getResources(),imagenId)));
+            generacionEnemigos();
+        }
+
+    };
+
 
     public Juego(AppCompatActivity context) {
         super(context);
         holder = getHolder();
         holder.addCallback(this);
         this.context = context;
+
     }
 
     @Override
@@ -59,12 +79,23 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         jugador.posY = maxY - jugador.spriteHeight;
         jugador.posX = maxX / 2 - jugador.spriteWidth / 2;
 
+        //GENERAR ENEMIGOS
+        generacionEnemigos();
 
         //Creamos el Gameloop
         bucleJuego = new BucleJuego(getHolder(), this);
         setFocusable(true);
         setOnTouchListener(this);
         bucleJuego.start();
+    }
+
+
+    private void generacionEnemigos(){
+
+        double delay=1000.0+(random.nextDouble()*(2000.0));
+        handler.postDelayed(generarEnemigo,(long)delay);
+
+
     }
 
     public void render(Canvas canvas) {
@@ -80,6 +111,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             paint.getTextBounds("Frames ejecutados", 0, 1, textBounds);
             canvas.drawText("Frames ejecutados: " + frameCount, textoInicialX, textoInicialY + textBounds.height(), paint);
             jugador.render(canvas,paint);
+
+            for (Enemigo e: enemigos){
+                e.render(canvas,paint);
+            }
         }
     }
 
@@ -91,6 +126,17 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             posMapaY = -mapHeight + maxY;
         }
         jugador.update();
+
+        Iterator<Enemigo> iterator=enemigos.iterator();
+        while(iterator.hasNext()){
+            Enemigo enemigo=iterator.next();
+            enemigo.update();
+            if(enemigo.posY>maxY){
+                iterator.remove();
+            }
+        }
+
+        
     }
 
 
