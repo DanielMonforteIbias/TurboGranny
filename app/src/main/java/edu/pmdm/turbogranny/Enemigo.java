@@ -13,7 +13,6 @@ public class Enemigo {
     public int spriteHeight, spriteWidth;
     public float posX, posY;
     public float velX, velY;
-    public float VELOCIDAD = 50f;
     private boolean activo;
 
     public Enemigo(Juego j, Bitmap sprite) {
@@ -41,12 +40,4 @@ public class Enemigo {
     public Rect getHitbox() {
         return new Rect((int) posX, (int) posY, (int) (posX + spriteWidth), (int) (posY + spriteHeight));
     }
-
-    private void spawn() {
-        posX = new Random().nextInt(juego.maxX - spriteWidth);
-        posY = -spriteHeight;
-    }
-
-
-
 }
