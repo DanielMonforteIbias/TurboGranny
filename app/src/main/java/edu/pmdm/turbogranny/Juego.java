@@ -13,6 +13,7 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.MotionEventCompat;
 
 public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.OnTouchListener {
     private SurfaceHolder holder; //Controla surfaceview para manejar el dibujo en pantalla
@@ -54,7 +55,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         mapWidth = maxX; // Ancho ahora es el de la pantalla
         posMapaY = -mapHeight + maxY;
         //CREAMOS Y POSICIONAMOS JUGADOR
-        jugador=new Jugador(BitmapFactory.decodeResource(getResources(), R.drawable.car1));
+        jugador=new Jugador(this,BitmapFactory.decodeResource(getResources(), R.drawable.car1));
         jugador.posY = maxY - jugador.spriteHeight;
         jugador.posX = maxX / 2 - jugador.spriteWidth / 2;
 
@@ -89,6 +90,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         if (posMapaY >= 0) {
             posMapaY = -mapHeight + maxY;
         }
+        jugador.update();
     }
 
 
@@ -104,6 +106,27 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        return false;
+        int index, x, y;
+        index = MotionEventCompat.getActionIndex(event); //Obtener el pointer de la accion
+
+        //Coordenadas del toque
+        x = (int) MotionEventCompat.getX(event, index);
+        y = (int) MotionEventCompat.getY(event, index);
+        //Identificar evento
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN: //Primer dedo toca la pantalla
+            case MotionEvent.ACTION_POINTER_DOWN: //Otro dedo toca la pantalla
+                if (x < maxX / 2) { // Toque en la mitad izquierda
+                    jugador.velX = -jugador.VELOCIDAD;
+                } else { // Toque en la mitad derecha
+                    jugador.velX = jugador.VELOCIDAD;
+                }
+                break;
+            case MotionEvent.ACTION_POINTER_UP: // un dedo levanta el toque pero hay otros tocando
+            case MotionEvent.ACTION_UP: //Ultimo dedo levanta el toque
+                jugador.velX = 0; // Dejar de girar el coche cuando se levanta el toque
+                break;
+        }
+        return true;
     }
 }
