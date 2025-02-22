@@ -13,7 +13,6 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.MotionEventCompat;
 
 public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.OnTouchListener {
     private SurfaceHolder holder; //Controla surfaceview para manejar el dibujo en pantalla
@@ -21,12 +20,14 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     //MAPA
     public int maxX = 0, maxY = 0;
     private Bitmap mapa;
-    private int mapHeight, mapWidth, destMapY;
+    private int mapHeight, mapWidth;
     private float velMapa = 80f;
-    private int posInicialMapa = 0, posMapaX = 0, posMapaY = 0;
+    private int posMapaX = 0, posMapaY = 0;
     private int frameCount = 0;
     private static final int textoInicialX = 50;
     private static final int textoInicialY = 20;
+
+    private Jugador jugador;
 
     private BucleJuego bucleJuego;
 
@@ -52,6 +53,11 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         mapHeight = mapa.getHeight(); // Actualizar el nuevo alto después de la escala
         mapWidth = maxX; // Ancho ahora es el de la pantalla
         posMapaY = -mapHeight + maxY;
+        //CREAMOS Y POSICIONAMOS JUGADOR
+        jugador=new Jugador(BitmapFactory.decodeResource(getResources(), R.drawable.car1));
+        jugador.posY = maxY - jugador.spriteHeight;
+        jugador.posX = maxX / 2 - jugador.spriteWidth / 2;
+
 
         //Creamos el Gameloop
         bucleJuego = new BucleJuego(getHolder(), this);
@@ -72,12 +78,17 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             Rect textBounds = new Rect();
             paint.getTextBounds("Frames ejecutados", 0, 1, textBounds);
             canvas.drawText("Frames ejecutados: " + frameCount, textoInicialX, textoInicialY + textBounds.height(), paint);
-
+            jugador.render(canvas,paint);
         }
     }
 
-    public void actualizar() {
+    public void update() {
         frameCount++;
+        //MOVIMIENTO MAPA
+        posMapaY += velMapa;
+        if (posMapaY >= 0) {
+            posMapaY = -mapHeight + maxY;
+        }
     }
 
 

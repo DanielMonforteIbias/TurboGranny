@@ -20,8 +20,7 @@ public class ActividadJuego extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         j = new Juego(this);
         setContentView(j);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE); //Bloqueamos actividad en horizontal.
-
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); //Bloqueamos actividad en vertical
     }
 
     private void hideSystemUI() {
