@@ -39,5 +39,4 @@ public class Jugador {
     public Rect getHitbox() {
         return new Rect((int) posX, (int) posY, (int) (posX + spriteWidth), (int) (posY + spriteHeight));
     }
-
 }

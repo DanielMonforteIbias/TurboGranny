@@ -54,8 +54,7 @@ public class BucleJuego extends Thread{
                     surfaceHolder.unlockCanvasAndPost(canvas);
 
                 }
-            } Log.d(TAG,"nueva iteración");
-
+            }
         }
     }
     public void fin(){JuegoEnEjecucion=false;}

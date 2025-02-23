@@ -31,14 +31,16 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     private int mapHeight, mapWidth;
     private float velMapa = 80f;
     private int posMapaX = 0, posMapaY = 0;
-    private int frameCount = 0;
+    public int frameCount = 0;
     private static final int textoInicialX = 50;
     private static final int textoInicialY = 20;
+
     private Jugador jugador;
+
     private ArrayList<Enemigo> enemigos=new ArrayList<>();
     private int[] enemigosImagenes={R.drawable.enemy1,R.drawable.enemy2,R.drawable.enemy3,R.drawable.enemy4,R.drawable.enemy5,R.drawable.enemy6};
+
     private Random random=new Random();
-    private BucleJuego bucleJuego;
     private Handler handler=new Handler();
     private Runnable generarEnemigo=new Runnable() {
         @Override
@@ -47,9 +49,11 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             enemigos.add(new Enemigo(Juego.this,BitmapFactory.decodeResource(getResources(),imagenId)));
             generacionEnemigos();
         }
-
     };
 
+    private ArrayList<Explosion> explosiones=new ArrayList<Explosion>();
+
+    private BucleJuego bucleJuego;
 
     public Juego(AppCompatActivity context) {
         super(context);
@@ -89,13 +93,9 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         bucleJuego.start();
     }
 
-
     private void generacionEnemigos(){
-
         double delay=1000.0+(random.nextDouble()*(2000.0));
         handler.postDelayed(generarEnemigo,(long)delay);
-
-
     }
 
     public void render(Canvas canvas) {
@@ -111,9 +111,12 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             paint.getTextBounds("Frames ejecutados", 0, 1, textBounds);
             canvas.drawText("Frames ejecutados: " + frameCount, textoInicialX, textoInicialY + textBounds.height(), paint);
             jugador.render(canvas,paint);
-
-            for (Enemigo e: enemigos){
-                e.render(canvas,paint);
+            //Pintamos los enemigos
+            for(int i=0;i<enemigos.size();i++){ //Se usa for normal y no foreach para evitar ConcurrentModificationException
+                enemigos.get(i).render(canvas,paint);
+            }
+            for(int i=0;i<explosiones.size();i++){
+                explosiones.get(i).render(canvas,paint);
             }
         }
     }
@@ -126,17 +129,22 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             posMapaY = -mapHeight + maxY;
         }
         jugador.update();
-
-        Iterator<Enemigo> iterator=enemigos.iterator();
-        while(iterator.hasNext()){
-            Enemigo enemigo=iterator.next();
-            enemigo.update();
+        //Actualizamos los enemigos
+        for(int i=0;i<enemigos.size();i++){ //Se usa for normal y no foreach para evitar ConcurrentModificationException
+            Enemigo enemigo=enemigos.get(i);
+            enemigo.update(enemigos);
+            if(enemigo.getHitbox().intersect(jugador.getHitbox())){
+                explosiones.add(new Explosion(this,BitmapFactory.decodeResource(getResources(),R.drawable.explosion),enemigo.posX,enemigo.posY));
+                enemigos.remove(i);
+            }
             if(enemigo.posY>maxY){
-                iterator.remove();
+                enemigos.remove(i);
             }
         }
-
-        
+        for(int i=0;i<explosiones.size();i++){
+            explosiones.get(i).update();
+            if(explosiones.get(i).finished()) explosiones.remove(i);
+        }
     }
 
 
