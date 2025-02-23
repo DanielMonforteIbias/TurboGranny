@@ -6,6 +6,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -17,7 +19,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.MotionEventCompat;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Random;
 
 
@@ -33,12 +34,15 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     private int posMapaX = 0, posMapaY = 0;
     public int frameCount = 0;
     private static final int textoInicialX = 50;
-    private static final int textoInicialY = 20;
+
 
     private Jugador jugador;
+    private SoundPool soundPool;
+    private int engineSoundId;
+    private Bitmap heart;
 
     private ArrayList<Enemigo> enemigos=new ArrayList<>();
-    private int[] enemigosImagenes={R.drawable.enemy1,R.drawable.enemy2,R.drawable.enemy3,R.drawable.enemy4,R.drawable.enemy5,R.drawable.enemy6};
+    private int[] enemigosImagenes={R.drawable.enemy1,R.drawable.enemy2,R.drawable.enemy3,R.drawable.enemy4,R.drawable.enemy5,R.drawable.enemy6,R.drawable.enemy7,R.drawable.enemy8,R.drawable.enemy9};
 
     private Random random=new Random();
     private Handler handler=new Handler();
@@ -52,15 +56,16 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     };
 
     private ArrayList<Explosion> explosiones=new ArrayList<Explosion>();
+    public int[]explosionesSonidos={R.raw.explosion1,R.raw.explosion2,R.raw.explosion3};
+    public int[]claxonSonidos={R.raw.claxon1,R.raw.claxon2,R.raw.claxon3,R.raw.claxon4};
 
-    private BucleJuego bucleJuego;
+    public BucleJuego bucleJuego;
 
     public Juego(AppCompatActivity context) {
         super(context);
         holder = getHolder();
         holder.addCallback(this);
         this.context = context;
-
     }
 
     @Override
@@ -82,6 +87,16 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         jugador=new Jugador(this,BitmapFactory.decodeResource(getResources(), R.drawable.car1));
         jugador.posY = maxY - jugador.spriteHeight;
         jugador.posX = maxX / 2 - jugador.spriteWidth / 2;
+        //Sonido de motor
+        soundPool = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
+        engineSoundId = soundPool.load(context, R.raw.engine, 1);
+        soundPool.setOnLoadCompleteListener((soundPool, sampleId, status) -> {
+            if (status == 0) {
+                soundPool.play(engineSoundId, 1, 1, 0, -1, 1);// Reproducir en bucle sin cortes
+            }
+        });
+
+        heart =BitmapFactory.decodeResource(getResources(),R.drawable.heart);
 
         //GENERAR ENEMIGOS
         generacionEnemigos();
@@ -107,16 +122,25 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
 
             paint.setStyle(Paint.Style.FILL);
             paint.setTextSize(40);
+            paint.setColor(Color.WHITE);
             Rect textBounds = new Rect();
             paint.getTextBounds("Frames ejecutados", 0, 1, textBounds);
-            canvas.drawText("Frames ejecutados: " + frameCount, textoInicialX, textoInicialY + textBounds.height(), paint);
+            canvas.drawText("Frames ejecutados: " + frameCount, textoInicialX, maxY- textBounds.height(), paint);
+
             jugador.render(canvas,paint);
+
             //Pintamos los enemigos
             for(int i=0;i<enemigos.size();i++){ //Se usa for normal y no foreach para evitar ConcurrentModificationException
                 enemigos.get(i).render(canvas,paint);
             }
             for(int i=0;i<explosiones.size();i++){
                 explosiones.get(i).render(canvas,paint);
+            }
+
+            //La interfaz se pinta lo ultimo para que esté por encima de lo demas
+            //Pintamos las vidas
+            for (int i = 0; i < jugador.vidas; i++) {
+                canvas.drawBitmap(heart, 50 +heart.getWidth()*i, 50, null);
             }
         }
     }
@@ -134,6 +158,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             Enemigo enemigo=enemigos.get(i);
             enemigo.update(enemigos);
             if(enemigo.getHitbox().intersect(jugador.getHitbox())){
+                jugador.vidas--; //Restamos una vida al jugador
                 explosiones.add(new Explosion(this,BitmapFactory.decodeResource(getResources(),R.drawable.explosion),enemigo.posX,enemigo.posY));
                 enemigos.remove(i);
             }
@@ -144,6 +169,24 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         for(int i=0;i<explosiones.size();i++){
             explosiones.get(i).update();
             if(explosiones.get(i).finished()) explosiones.remove(i);
+        }
+
+        //Si el jugador se ha quedado sin vidas, pierde
+        if(jugador.vidas<=0 && jugador.activo){
+            jugador.spriteEstado=3; //Coche roto
+            jugador.velX=0; //Paramos el coche en horizontal
+            jugador.velY=10;
+            jugador.activo=false; //Desactivamos el jugador
+            soundPool.stop(engineSoundId); //Paramos el sonido de motor
+            explosiones.add(new Explosion(this,BitmapFactory.decodeResource(getResources(),R.drawable.explosion),jugador.posX,jugador.posY));
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    bucleJuego.fin(); //Paramos el bucle del juego
+                    context.finish();
+                }
+            }, 1500); //Se cerrara tras 1 segundo y medio
+
         }
     }
 
@@ -167,20 +210,27 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         x = (int) MotionEventCompat.getX(event, index);
         y = (int) MotionEventCompat.getY(event, index);
         //Identificar evento
-        switch (event.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN: //Primer dedo toca la pantalla
-            case MotionEvent.ACTION_POINTER_DOWN: //Otro dedo toca la pantalla
-                if (x < maxX / 2) { // Toque en la mitad izquierda
-                    jugador.velX = -jugador.VELOCIDAD;
-                } else { // Toque en la mitad derecha
-                    jugador.velX = jugador.VELOCIDAD;
-                }
-                break;
-            case MotionEvent.ACTION_POINTER_UP: // un dedo levanta el toque pero hay otros tocando
-            case MotionEvent.ACTION_UP: //Ultimo dedo levanta el toque
-                jugador.velX = 0; // Dejar de girar el coche cuando se levanta el toque
-                break;
+        if(jugador.activo){
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN: //Primer dedo toca la pantalla
+                case MotionEvent.ACTION_POINTER_DOWN: //Otro dedo toca la pantalla
+                    if (x < maxX / 2) { // Toque en la mitad izquierda
+                        jugador.velX = -jugador.VELOCIDAD;
+                    } else { // Toque en la mitad derecha
+                        jugador.velX = jugador.VELOCIDAD;
+                    }
+                    break;
+                case MotionEvent.ACTION_POINTER_UP: // un dedo levanta el toque pero hay otros tocando
+                case MotionEvent.ACTION_UP: //Ultimo dedo levanta el toque
+                    jugador.velX = 0; // Dejar de girar el coche cuando se levanta el toque
+                    break;
+            }
         }
         return true;
+    }
+    public void terminarPartida(){
+        soundPool.stop(engineSoundId);
+        bucleJuego.fin();
+        context.finish();
     }
 }
