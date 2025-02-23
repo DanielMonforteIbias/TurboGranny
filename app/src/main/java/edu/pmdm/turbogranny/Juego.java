@@ -132,7 +132,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         //Actualizamos los enemigos
         for(int i=0;i<enemigos.size();i++){ //Se usa for normal y no foreach para evitar ConcurrentModificationException
             Enemigo enemigo=enemigos.get(i);
-            enemigo.update();
+            enemigo.update(enemigos);
             if(enemigo.getHitbox().intersect(jugador.getHitbox())){
                 explosiones.add(new Explosion(this,BitmapFactory.decodeResource(getResources(),R.drawable.explosion),enemigo.posX,enemigo.posY));
                 enemigos.remove(i);
