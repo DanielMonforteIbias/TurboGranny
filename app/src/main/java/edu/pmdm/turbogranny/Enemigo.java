@@ -14,6 +14,7 @@ public class Enemigo {
     public int spriteHeight, spriteWidth;
     public float posX, posY;
     public float velX, velY;
+    private float minSpeed = 10; // necesitamos una velocidad minima para no quedar atascados
     private boolean activo;
 
     public Enemigo(Juego j, Bitmap sprite) {
@@ -44,9 +45,7 @@ public class Enemigo {
                 } else {
                     this.velY = Math.min(this.velY, otroEnemigo.velY - 5); // restamos
                 }
-
-                // nso aseguramos que la velocidad no sea menor que un valor mínimo
-                float minSpeed = 10; // necesitamos una velocidad minima para no quedar atascados
+                // nos aseguramos que la velocidad no sea menor que un valor mínimo
                 this.velY = Math.max(this.velY, minSpeed);
 
                 break; // No es necesario seguir verificando
@@ -60,22 +59,7 @@ public class Enemigo {
     }
 
     public boolean chocara(Enemigo otroEnemigo) {
-        Rect thisHitbox = new Rect(
-                (int) posX,
-                (int) posY,
-                (int) (posX + spriteWidth),
-                (int) (posY + spriteHeight)
-        );
-
-        Rect otherHitbox = new Rect(
-                (int) otroEnemigo.posX,
-                (int) otroEnemigo.posY,
-                (int) (otroEnemigo.posX + otroEnemigo.spriteWidth),
-                (int) (otroEnemigo.posY + otroEnemigo.spriteHeight)
-        );
-
-        // Verifica si los hitboxes se superponen
-        return thisHitbox.intersect(otherHitbox);
+        return this.getHitbox().intersect(otroEnemigo.getHitbox());
     }
 
     public void ajusteVelocidad(ArrayList<Enemigo> otrosEnemigos, float minDistancia, float velocidadReducida) {

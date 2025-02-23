@@ -13,22 +13,32 @@ public class Jugador {
     public float posX, posY;
     public float velX, velY;
     public float VELOCIDAD = 50f;
+    public int vidas;
+    public boolean activo;
 
     public Jugador(Juego j,Bitmap sprite) {
         this.juego=j;
         this.sprite = sprite;
         this.spriteHeight=sprite.getHeight();
         this.spriteWidth=sprite.getWidth()/4;
+        this.vidas=3;
+        this.activo=true;
     }
 
     public void update(){
-        if(velX!=0){
-            if(velX<0) spriteEstado=1;
-            else spriteEstado=2;
-            posX+=velX; //No se usa deltaTime porque la regulacion de frames ya se hace en BucleJuego usando Thread.sleep, lo que elimina la necesidad de usar deltaTime aqui
-            if(posX<0 || posX+spriteWidth>juego.maxX) posX-=velX;
+        if(vidas>0){
+            if(velX!=0){
+                if(velX<0) spriteEstado=1;
+                else spriteEstado=2;
+                posX+=velX; //No se usa deltaTime porque la regulacion de frames ya se hace en BucleJuego usando Thread.sleep, lo que elimina la necesidad de usar deltaTime aqui
+                if(posX<0 || posX+spriteWidth>juego.maxX) posX-=velX;
+            }
+            else spriteEstado=0;
         }
-        else spriteEstado=0;
+        else {
+            posY+=velY;
+            spriteEstado=3;
+        }
     }
     public void render(Canvas canvas, Paint paint){
         int spriteNumber = spriteWidth * spriteEstado;

@@ -17,7 +17,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.MotionEventCompat;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Random;
 
 
@@ -36,6 +35,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     private static final int textoInicialY = 20;
 
     private Jugador jugador;
+    private Bitmap heart;
 
     private ArrayList<Enemigo> enemigos=new ArrayList<>();
     private int[] enemigosImagenes={R.drawable.enemy1,R.drawable.enemy2,R.drawable.enemy3,R.drawable.enemy4,R.drawable.enemy5,R.drawable.enemy6};
@@ -83,6 +83,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         jugador.posY = maxY - jugador.spriteHeight;
         jugador.posX = maxX / 2 - jugador.spriteWidth / 2;
 
+        heart =BitmapFactory.decodeResource(getResources(),R.drawable.heart);
+
         //GENERAR ENEMIGOS
         generacionEnemigos();
 
@@ -107,10 +109,17 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
 
             paint.setStyle(Paint.Style.FILL);
             paint.setTextSize(40);
+            paint.setColor(Color.WHITE);
             Rect textBounds = new Rect();
             paint.getTextBounds("Frames ejecutados", 0, 1, textBounds);
-            canvas.drawText("Frames ejecutados: " + frameCount, textoInicialX, textoInicialY + textBounds.height(), paint);
+            canvas.drawText("Frames ejecutados: " + frameCount, textoInicialX, maxY- textBounds.height(), paint);
+
             jugador.render(canvas,paint);
+            //Pintamos las vidas
+            for (int i = 0; i < jugador.vidas; i++) {
+                canvas.drawBitmap(heart, 50 +heart.getWidth()*i, 50, null);
+            }
+
             //Pintamos los enemigos
             for(int i=0;i<enemigos.size();i++){ //Se usa for normal y no foreach para evitar ConcurrentModificationException
                 enemigos.get(i).render(canvas,paint);
@@ -134,6 +143,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             Enemigo enemigo=enemigos.get(i);
             enemigo.update(enemigos);
             if(enemigo.getHitbox().intersect(jugador.getHitbox())){
+                jugador.vidas--; //Restamos una vida al jugador
                 explosiones.add(new Explosion(this,BitmapFactory.decodeResource(getResources(),R.drawable.explosion),enemigo.posX,enemigo.posY));
                 enemigos.remove(i);
             }
@@ -144,6 +154,23 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         for(int i=0;i<explosiones.size();i++){
             explosiones.get(i).update();
             if(explosiones.get(i).finished()) explosiones.remove(i);
+        }
+
+        //Si el jugador se ha quedado sin vidas, pierde
+        if(jugador.vidas<=0 && jugador.activo){
+            jugador.spriteEstado=3; //Coche roto
+            jugador.velX=0; //Paramos el coche en horizontal
+            jugador.velY=10;
+            jugador.activo=false; //Desactivamos el jugador
+            explosiones.add(new Explosion(this,BitmapFactory.decodeResource(getResources(),R.drawable.explosion),jugador.posX,jugador.posY));
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    bucleJuego.fin(); //Paramos el bucle del juego
+                    context.finish();
+                }
+            }, 1500); //Se cerrara tras 1 segundo y medio
+
         }
     }
 
@@ -167,19 +194,21 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         x = (int) MotionEventCompat.getX(event, index);
         y = (int) MotionEventCompat.getY(event, index);
         //Identificar evento
-        switch (event.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN: //Primer dedo toca la pantalla
-            case MotionEvent.ACTION_POINTER_DOWN: //Otro dedo toca la pantalla
-                if (x < maxX / 2) { // Toque en la mitad izquierda
-                    jugador.velX = -jugador.VELOCIDAD;
-                } else { // Toque en la mitad derecha
-                    jugador.velX = jugador.VELOCIDAD;
-                }
-                break;
-            case MotionEvent.ACTION_POINTER_UP: // un dedo levanta el toque pero hay otros tocando
-            case MotionEvent.ACTION_UP: //Ultimo dedo levanta el toque
-                jugador.velX = 0; // Dejar de girar el coche cuando se levanta el toque
-                break;
+        if(jugador.activo){
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN: //Primer dedo toca la pantalla
+                case MotionEvent.ACTION_POINTER_DOWN: //Otro dedo toca la pantalla
+                    if (x < maxX / 2) { // Toque en la mitad izquierda
+                        jugador.velX = -jugador.VELOCIDAD;
+                    } else { // Toque en la mitad derecha
+                        jugador.velX = jugador.VELOCIDAD;
+                    }
+                    break;
+                case MotionEvent.ACTION_POINTER_UP: // un dedo levanta el toque pero hay otros tocando
+                case MotionEvent.ACTION_UP: //Ultimo dedo levanta el toque
+                    jugador.velX = 0; // Dejar de girar el coche cuando se levanta el toque
+                    break;
+            }
         }
         return true;
     }
