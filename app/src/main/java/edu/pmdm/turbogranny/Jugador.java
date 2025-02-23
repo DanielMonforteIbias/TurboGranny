@@ -4,6 +4,9 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.SoundPool;
 
 public class Jugador {
     private Juego juego;
@@ -15,6 +18,7 @@ public class Jugador {
     public float VELOCIDAD = 50f;
     public int vidas;
     public boolean activo;
+
 
     public Jugador(Juego j,Bitmap sprite) {
         this.juego=j;

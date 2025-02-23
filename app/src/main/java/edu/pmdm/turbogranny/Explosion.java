@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.media.MediaPlayer;
 
 import java.util.Random;
 
@@ -14,6 +15,7 @@ public class Explosion {
     public float posX, posY;
     private int estado;
     private final int SPRITE_COUNT=5;
+    private MediaPlayer mediaPlayer;
 
     public Explosion(Juego j,Bitmap sprite,float x,float y) {
         this.juego=j;
@@ -23,6 +25,15 @@ public class Explosion {
         this.posX = x;
         this.posY = y;
         this.estado=-1;
+        int explosionIndex=new Random().nextInt(juego.explosionesSonidos.length);
+        mediaPlayer = MediaPlayer.create(j.getContext(), juego.explosionesSonidos[explosionIndex]);
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                mp.release();
+            }
+        });
+        mediaPlayer.start();
     }
 
     public void update() {

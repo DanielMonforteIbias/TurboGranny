@@ -4,6 +4,8 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.media.MediaPlayer;
+import android.media.SoundPool;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -16,6 +18,7 @@ public class Enemigo {
     public float velX, velY;
     private float minSpeed = 10; // necesitamos una velocidad minima para no quedar atascados
     private boolean activo;
+    private MediaPlayer mediaPlayer;
 
     public Enemigo(Juego j, Bitmap sprite) {
         this.juego = j;
@@ -26,6 +29,8 @@ public class Enemigo {
         this.posY = -spriteHeight;
         this.velY = (float)((Math.random()*20)+11);
         this.activo=true;
+        int claxonIndex=new Random().nextInt(juego.claxonSonidos.length);
+        mediaPlayer = MediaPlayer.create(j.getContext(), juego.claxonSonidos[claxonIndex]);
     }
 
 
@@ -47,7 +52,7 @@ public class Enemigo {
                 }
                 // nos aseguramos que la velocidad no sea menor que un valor mínimo
                 this.velY = Math.max(this.velY, minSpeed);
-
+                mediaPlayer.start();
                 break; // No es necesario seguir verificando
             }
         }
