@@ -50,8 +50,10 @@ public class Enemigo {
                 } else {
                     this.velY = Math.min(this.velY, otroEnemigo.velY - 5); // restamos
                 }
+                otroEnemigo.velY+=1;
                 // nos aseguramos que la velocidad no sea menor que un valor mínimo
                 this.velY = Math.max(this.velY, minSpeed);
+                otroEnemigo.velY = Math.max(otroEnemigo.velY, minSpeed);
                 mediaPlayer.start();
                 break; // No es necesario seguir verificando
             }

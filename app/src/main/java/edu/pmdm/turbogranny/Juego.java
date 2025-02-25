@@ -220,6 +220,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
 
             //La interfaz se pinta lo ultimo para que esté por encima de lo demas
             //Pintamos las vidas
+            Rect menu=new Rect(0,0,maxX,200);
+            canvas.drawRect(menu,paint);
             for (int i = 0; i < jugador.vidas; i++) {
                 canvas.drawBitmap(heart, 50 +heart.getWidth()*i, 50, null);
             }
@@ -337,7 +339,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
                         jugador.velY=-jugador.VELOCIDADY;
                     }
                     else if(y>jugador.posY+jugador.spriteHeight){
-                        jugador.velY=jugador.VELOCIDADY;
+                        jugador.velY=jugador.VELOCIDADY*3; //Frenamos mas que aceleramos
                     }
                     break;
                 case MotionEvent.ACTION_POINTER_UP: // un dedo levanta el toque pero hay otros tocando
