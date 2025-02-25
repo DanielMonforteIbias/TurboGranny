@@ -24,21 +24,25 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.bumptech.glide.Glide;
+
 import edu.pmdm.turbogranny.databinding.ActivityMainBinding;
+
 
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private int carIndex=0;
-    private int[]cars={R.drawable.car1,R.drawable.car2,R.drawable.car3}; //Necesario para mostrar y animar solo la imagen de los coches quietos
-    private int[]carsSpriteSheets={R.drawable.car1spritesheet,R.drawable.car2spritesheet,R.drawable.car3spritesheet}; //Necesario para pasar el spritesheet correcto
+    private int[]cars={R.drawable.car1,R.drawable.car2,R.drawable.car3,R.drawable.car4,R.drawable.car5}; //Necesario para mostrar y animar solo la imagen de los coches quietos
+    private int[]carsSpriteSheets={R.drawable.car1spritesheet,R.drawable.car2spritesheet,R.drawable.car3spritesheet,R.drawable.car4spritesheet,R.drawable.car5spritesheet}; //Necesario para pasar el spritesheet correcto
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding= ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-// Obtener y mostrar el total de monedas guardado en SharedPreferences
+    // Obtener y mostrar el total de monedas guardado en SharedPreferences
+
         int totalMonedas = getSharedPreferences("DatosJuego", MODE_PRIVATE).getInt("monedas", 000);
-        binding.textView.setText(String.valueOf(totalMonedas));
+        binding.txtCoins.setText(String.valueOf(totalMonedas));
         changeCar();
         binding.startButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, ActividadJuego.class);
@@ -59,13 +63,12 @@ public class MainActivity extends AppCompatActivity {
                 changeCar();
             }
         });
-
         animarBoton();
         animarMoneda();
     }
 
     private void changeCar(){
-        binding.imgCar.setImageBitmap(BitmapFactory.decodeResource(getResources(),cars[carIndex]));
+        animacionCambioCoche();
     }
 
     private void animarBoton(){
@@ -97,11 +100,22 @@ public class MainActivity extends AppCompatActivity {
         coinAnimation.start();
     }
 
+    private void animacionCambioCoche(){
+        AnimatorSet carAnimator=new AnimatorSet();
+        ObjectAnimator trasladar=ObjectAnimator.ofFloat(binding.imgCar,"translationX",binding.imgCar.getX(),getResources().getDisplayMetrics().widthPixels);
+        trasladar.setDuration(500);
+        carAnimator.play(trasladar);
+        binding.imgCar.setImageBitmap(BitmapFactory.decodeResource(getResources(),cars[carIndex]));
+        ObjectAnimator trasladarVuelta=ObjectAnimator.ofFloat(binding.imgCar,"translationX",getResources().getDisplayMetrics().widthPixels,binding.imgCar.getX());
+        trasladarVuelta.setDuration(500);
+        carAnimator.play(trasladarVuelta);
+        carAnimator.start();
+    }
     @Override
     protected void onResume() {
         super.onResume();
         int totalMonedas = getSharedPreferences("DatosJuego", MODE_PRIVATE).getInt("monedas", 0);
-        binding.textView.setText(String.valueOf(totalMonedas));
+        binding.txtCoins.setText(String.valueOf(totalMonedas));
     }
 
 }
