@@ -1,5 +1,7 @@
 package edu.pmdm.turbogranny;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -62,6 +64,18 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     public int[]claxonSonidos={R.raw.claxon1,R.raw.claxon2,R.raw.claxon3,R.raw.claxon4};
 
     public BucleJuego bucleJuego;
+    private ArrayList<Moneda> monedas = new ArrayList<>();
+
+    private Handler manejadorMonedas = new Handler();
+    private Runnable generarMoneda = new Runnable() {
+        @Override
+        public void run() {
+            crearMoneda();
+            programarSiguienteMoneda();
+        }
+    };
+    private Bitmap[] fotogramasMoneda;
+    private int monedasPartida = 0;
 
     public Juego(AppCompatActivity context) {
         super(context);
@@ -85,6 +99,9 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         mapHeight = mapa.getHeight(); // Actualizar el nuevo alto después de la escala
         mapWidth = maxX; // Ancho ahora es el de la pantalla
         posMapaY = -mapHeight + maxY;
+
+
+
         //CREAMOS Y POSICIONAMOS JUGADOR
         jugador=new Jugador(this,BitmapFactory.decodeResource(getResources(), carId));
         jugador.posY = maxY - jugador.spriteHeight;
@@ -101,8 +118,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         heart =BitmapFactory.decodeResource(getResources(),R.drawable.heart);
         heart=Bitmap.createScaledBitmap(heart, (int)(heart.getWidth()*1.3), (int)(heart.getHeight()*1.3), true); //Hacemos el sprite un 1.3 mas grande
 
+
         //GENERAR ENEMIGOS
         generacionEnemigos();
+        programarSiguienteMoneda();
 
         //Creamos el Gameloop
         bucleJuego = new BucleJuego(getHolder(), this);
@@ -111,10 +130,32 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         bucleJuego.start();
     }
 
+    private void crearMoneda() {
+        // Posición X aleatoria dentro de la pantalla
+        int x = random.nextInt(maxX - 150);
+        // La moneda inicia justo arriba de la pantalla
+        int y = -100;
+
+        Moneda moneda = new Moneda(this, R.drawable.coin, x, y);
+        monedas.add(moneda);
+    }
+
+
+
+
+    private void programarSiguienteMoneda() {
+        // Intervalo aleatorio entre 1.5 y 3.5 segundos
+        double delay = 1500.0 + (random.nextDouble() * 2000.0);
+        manejadorMonedas.postDelayed(generarMoneda, (long) delay);
+    }
+
+
     private void generacionEnemigos(){
         double delay=1000.0+(random.nextDouble()*(2000.0));
         handler.postDelayed(generarEnemigo,(long)delay);
     }
+
+
 
     public void render(Canvas canvas) {
         if (canvas != null) {
@@ -138,6 +179,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             }
             for(int i=0;i<explosiones.size();i++){
                 explosiones.get(i).render(canvas,paint);
+            }
+            // Dibujar monedas
+            for (int i = 0; i < monedas.size(); i++) {
+                monedas.get(i).dibujar(canvas, paint);
             }
 
             //La interfaz se pinta lo ultimo para que esté por encima de lo demas
@@ -174,6 +219,21 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             if(explosiones.get(i).finished()) explosiones.remove(i);
         }
 
+        // Actualizar monedas
+        for (int i = 0; i < monedas.size(); i++) {
+            Moneda moneda = monedas.get(i);
+            moneda.actualizar();
+
+            // Si la moneda colisiona con el jugador, se recoge
+            if (moneda.obtenerHitbox().intersect(jugador.getHitbox())) {
+                monedasPartida++; // Se suma la moneda a SharedPreferences
+                monedas.remove(i);
+            } else if (moneda.posY > maxY) {
+                // Si la moneda se sale de la pantalla, se elimina
+                monedas.remove(i);
+            }
+        }
+
         //Si el jugador se ha quedado sin vidas, pierde
         if(jugador.vidas<=0 && jugador.activo){
             jugador.spriteEstado=3; //Coche roto
@@ -186,6 +246,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
                 @Override
                 public void run() {
                     bucleJuego.fin(); //Paramos el bucle del juego
+                    actualizarMonedasGanadas();
                     context.finish();
                 }
             }, 1500); //Se cerrara tras 1 segundo y medio
@@ -194,15 +255,27 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     }
 
 
+
+    private void actualizarMonedasGanadas() {
+        int monedasTotales = context.getSharedPreferences("DatosJuego", MODE_PRIVATE)
+                .getInt("monedas", 0);
+        monedasTotales += monedasPartida;
+        context.getSharedPreferences("DatosJuego", MODE_PRIVATE)
+                .edit()
+                .putInt("monedas", monedasTotales)
+                .apply();
+    }
+
+
     @Override
     public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-
     }
 
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
 
     }
+
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -238,6 +311,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         }
         return true;
     }
+
+
     public void terminarPartida(){
         soundPool.stop(engineSoundId);
         bucleJuego.fin();
