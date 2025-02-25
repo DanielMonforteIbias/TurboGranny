@@ -4,9 +4,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.media.SoundPool;
 
 public class Jugador {
     private Juego juego;
@@ -15,7 +12,8 @@ public class Jugador {
     public int spriteEstado;
     public float posX, posY;
     public float velX, velY;
-    public float VELOCIDAD = 50f;
+    public float VELOCIDADX = 50f;
+    public float VELOCIDADY=10f;
     public int vidas;
     public boolean activo;
 
@@ -38,6 +36,10 @@ public class Jugador {
                 if(posX<0 || posX+spriteWidth>juego.maxX) posX-=velX;
             }
             else spriteEstado=0;
+            if(velY!=0){
+                posY+=velY; //No se usa deltaTime porque la regulacion de frames ya se hace en BucleJuego usando Thread.sleep, lo que elimina la necesidad de usar deltaTime aqui
+                if(posY<0 || posY+spriteHeight>juego.maxY) posY-=velY;
+            }
         }
         else {
             posY+=velY;

@@ -37,6 +37,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
 
 
     private Jugador jugador;
+    public int carId;
+
     private SoundPool soundPool;
     private int engineSoundId;
     private Bitmap heart;
@@ -84,7 +86,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         mapWidth = maxX; // Ancho ahora es el de la pantalla
         posMapaY = -mapHeight + maxY;
         //CREAMOS Y POSICIONAMOS JUGADOR
-        jugador=new Jugador(this,BitmapFactory.decodeResource(getResources(), R.drawable.car1));
+        jugador=new Jugador(this,BitmapFactory.decodeResource(getResources(), carId));
         jugador.posY = maxY - jugador.spriteHeight;
         jugador.posX = maxX / 2 - jugador.spriteWidth / 2;
         //Sonido de motor
@@ -97,6 +99,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         });
 
         heart =BitmapFactory.decodeResource(getResources(),R.drawable.heart);
+        heart=Bitmap.createScaledBitmap(heart, (int)(heart.getWidth()*1.3), (int)(heart.getHeight()*1.3), true); //Hacemos el sprite un 1.3 mas grande
 
         //GENERAR ENEMIGOS
         generacionEnemigos();
@@ -214,15 +217,22 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN: //Primer dedo toca la pantalla
                 case MotionEvent.ACTION_POINTER_DOWN: //Otro dedo toca la pantalla
-                    if (x < maxX / 2) { // Toque en la mitad izquierda
-                        jugador.velX = -jugador.VELOCIDAD;
-                    } else { // Toque en la mitad derecha
-                        jugador.velX = jugador.VELOCIDAD;
+                    if (x < jugador.posX) { // Toque en el primer tercio
+                        jugador.velX = -jugador.VELOCIDADX;
+                    } else if (x>jugador.posX+jugador.spriteWidth){ // Toque en el tercer tercio
+                        jugador.velX = jugador.VELOCIDADX;
+                    }
+                    if(y<jugador.posY){
+                        jugador.velY=-jugador.VELOCIDADY;
+                    }
+                    else if(y>jugador.posY+jugador.spriteHeight){
+                        jugador.velY=jugador.VELOCIDADY;
                     }
                     break;
                 case MotionEvent.ACTION_POINTER_UP: // un dedo levanta el toque pero hay otros tocando
                 case MotionEvent.ACTION_UP: //Ultimo dedo levanta el toque
                     jugador.velX = 0; // Dejar de girar el coche cuando se levanta el toque
+                    jugador.velY=0;
                     break;
             }
         }
