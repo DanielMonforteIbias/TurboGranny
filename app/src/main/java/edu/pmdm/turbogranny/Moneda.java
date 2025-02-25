@@ -10,7 +10,7 @@ public class Moneda {
     private Bitmap[] fotogramas;   // Array de fotogramas para la animación
     private int indiceFotograma = 0;
     public float posX, posY;       // Posición de la moneda
-    private float velocidad = 10f; // Velocidad de caída (ajústala según necesites)
+    private float velocidad = 10f; // Velocidad de caída
     private int anchoSprite, altoSprite;
 
     public Moneda(Juego juego, Bitmap[] fotogramas, float x, float y) {
@@ -18,7 +18,6 @@ public class Moneda {
         this.fotogramas = fotogramas;
         this.posX = x;
         this.posY = y;
-        // Se asume que todos los fotogramas tienen el mismo tamaño
         this.anchoSprite = fotogramas[0].getWidth();
         this.altoSprite = fotogramas[0].getHeight();
     }

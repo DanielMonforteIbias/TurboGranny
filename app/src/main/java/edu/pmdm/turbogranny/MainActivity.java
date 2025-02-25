@@ -36,7 +36,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding= ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
+// Obtener y mostrar el total de monedas guardado en SharedPreferences
+        int totalMonedas = getSharedPreferences("DatosJuego", MODE_PRIVATE).getInt("monedas", 000);
+        binding.textView.setText(String.valueOf(totalMonedas));
         changeCar();
         binding.startButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, ActividadJuego.class);
@@ -94,4 +96,12 @@ public class MainActivity extends AppCompatActivity {
         coinAnimation= (AnimationDrawable) coinImage.getBackground();
         coinAnimation.start();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        int totalMonedas = getSharedPreferences("DatosJuego", MODE_PRIVATE).getInt("monedas", 0);
+        binding.textView.setText(String.valueOf(totalMonedas));
+    }
+
 }

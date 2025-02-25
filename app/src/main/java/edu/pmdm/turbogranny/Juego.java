@@ -1,5 +1,7 @@
 package edu.pmdm.turbogranny;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -73,6 +75,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         }
     };
     private Bitmap[] fotogramasMoneda;
+    private int monedasPartida = 0;
 
     public Juego(AppCompatActivity context) {
         super(context);
@@ -237,7 +240,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
 
             // Si la moneda colisiona con el jugador, se recoge
             if (moneda.obtenerHitbox().intersect(jugador.getHitbox())) {
-            //    sumarMoneda();  // Se suma la moneda a SharedPreferences
+                monedasPartida++; // Se suma la moneda a SharedPreferences
                 monedas.remove(i);
             } else if (moneda.posY > maxY) {
                 // Si la moneda se sale de la pantalla, se elimina
@@ -263,6 +266,20 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
 
         }
     }
+
+
+
+    private void actualizarMonedasGanadas() {
+        int monedasTotales = context.getSharedPreferences("DatosJuego", MODE_PRIVATE)
+                .getInt("monedas", 0);
+        monedasTotales += monedasPartida;
+        context.getSharedPreferences("DatosJuego", MODE_PRIVATE)
+                .edit()
+                .putInt("monedas", monedasTotales)
+                .apply();
+    }
+
+
 
 
     @Override
