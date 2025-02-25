@@ -1,5 +1,7 @@
 package edu.pmdm.turbogranny;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,6 +18,7 @@ import androidx.core.view.WindowInsetsCompat;
 public class ActividadJuego extends AppCompatActivity {
 
     Juego j;
+    private boolean juegoPausado = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,6 +28,45 @@ public class ActividadJuego extends AppCompatActivity {
         setContentView(j);
         j.carId=carId;
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); //Bloqueamos actividad en vertical
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (j.bucleJuego != null && j.bucleJuego.JuegoEnEjecucion) {
+            juegoPausado = true;
+            j.pausarJuego(); // Pausar el juego completamente
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (juegoPausado) {
+            mostrarDialogoReanudar();
+        }
+    }
+
+    private void mostrarDialogoReanudar() {
+        new AlertDialog.Builder(this)
+                .setTitle("Juego en pausa")
+                .setMessage("¿Quieres reanudar la partida o salir?")
+                .setPositiveButton("Reanudar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        juegoPausado = false;
+                        j.reanudarJuego();
+                    }
+                })
+                .setNegativeButton("Salir", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        j.terminarPartida(); // Terminamos la partida
+                        finish(); // Cerramos la actividad
+                    }
+                })
+                .setCancelable(false) // Evitamos que el usuario cierre el diálogo sin elegir algo
+                .show();
     }
 
     private void hideSystemUI() {
