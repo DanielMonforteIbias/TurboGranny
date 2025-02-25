@@ -37,7 +37,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     public int frameCount = 0;
     private static final int textoInicialX = 50;
 
-
     private Jugador jugador;
     public int carId;
 
@@ -77,6 +76,16 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     private int monedasPartida = 0;
 
     private boolean juegoPausado = false;
+    private ArrayList<Vida> vidas = new ArrayList<>(); // Lista de vidas
+    private Bitmap heartSprite;
+    private Handler manejadorVidas = new Handler();
+    private Runnable generarVida = new Runnable() {
+        @Override
+        public void run() {
+            crearVida();
+            programarSiguienteVida();
+        }
+    };
 
     public Juego(AppCompatActivity context) {
         super(context);
@@ -84,6 +93,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         holder.addCallback(this);
         this.context = context;
     }
+
 
     public void pausarJuego() {
         juegoPausado = true;
@@ -126,24 +136,30 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         mapWidth = maxX; // Ancho ahora es el de la pantalla
         posMapaY = -mapHeight + maxY;
 
+        if(jugador==null){
+            //CREAMOS Y POSICIONAMOS JUGADOR
+            jugador=new Jugador(this,BitmapFactory.decodeResource(getResources(), carId));
+            jugador.posY = maxY - jugador.spriteHeight;
+            jugador.posX = maxX / 2 - jugador.spriteWidth / 2;
+            //Sonido de motor
+            soundPool = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
+            engineSoundId = soundPool.load(context, R.raw.engine, 1);
+            soundPool.setOnLoadCompleteListener((soundPool, sampleId, status) -> {
+                if (status == 0) {
+                    soundPool.play(engineSoundId, 1, 1, 0, -1, 1);// Reproducir en bucle sin cortes
+                }
+            });
+        }
 
-
-        //CREAMOS Y POSICIONAMOS JUGADOR
-        jugador=new Jugador(this,BitmapFactory.decodeResource(getResources(), carId));
-        jugador.posY = maxY - jugador.spriteHeight;
-        jugador.posX = maxX / 2 - jugador.spriteWidth / 2;
-        //Sonido de motor
-        soundPool = new SoundPool(1, AudioManager.STREAM_MUSIC, 0);
-        engineSoundId = soundPool.load(context, R.raw.engine, 1);
-        soundPool.setOnLoadCompleteListener((soundPool, sampleId, status) -> {
-            if (status == 0) {
-                soundPool.play(engineSoundId, 1, 1, 0, -1, 1);// Reproducir en bucle sin cortes
-            }
-        });
 
         heart =BitmapFactory.decodeResource(getResources(),R.drawable.heart);
         heart=Bitmap.createScaledBitmap(heart, (int)(heart.getWidth()*1.3), (int)(heart.getHeight()*1.3), true); //Hacemos el sprite un 1.3 mas grande
 
+        // Cargar el sprite del corazón
+        heartSprite = BitmapFactory.decodeResource(getResources(), R.drawable.coin);
+
+        // Generar la primera vida
+        programarSiguienteVida();
 
         //GENERAR ENEMIGOS
         generacionEnemigos();
@@ -154,8 +170,25 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         setFocusable(true);
         setOnTouchListener(this);
         bucleJuego.start();
+
+
     }
 
+    private void crearVida() {
+        // Posición X aleatoria dentro de la pantalla
+        int x = random.nextInt(maxX - (heartSprite.getWidth() / 6)); // Ajustar según el ancho del fotograma
+        // La vida inicia justo arriba de la pantalla
+        int y = -heartSprite.getHeight();
+
+        Vida vida = new Vida(this, heartSprite, x, y);
+        vidas.add(vida);
+    }
+
+    private void programarSiguienteVida() {
+        // Intervalo aleatorio entre 30 y 50 segundos
+        long delay = 30000 + (long) (random.nextDouble() * 20000); // 30,000 ms = 30 segundos, 20,000 ms = 20 segundos adicionales
+        manejadorVidas.postDelayed(generarVida, delay);
+    }
 
 
 
@@ -218,6 +251,11 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
                 monedas.get(i).dibujar(canvas, paint);
             }
 
+            // Dibujar las vidas
+            for (int i = 0; i < vidas.size(); i++) {
+                vidas.get(i).render(canvas, paint);
+            }
+
             //La interfaz se pinta lo ultimo para que esté por encima de lo demas
             //Pintamos las vidas
             for (int i = 0; i < jugador.vidas; i++) {
@@ -269,6 +307,20 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
                 monedas.remove(i);
             }
         }
+
+        for (int i = 0; i < vidas.size(); i++) {
+            Vida vida = vidas.get(i);
+            vida.update();
+
+            // Verificar colisión con el jugador
+            if (vida.isActiva() && vida.getHitbox().intersect(jugador.getHitbox())) {
+                jugador.vidas++; // Aumentar las vidas del jugador
+                vidas.remove(i); // Eliminar la vida recolectada
+            } else if (!vida.isActiva()) {
+                vidas.remove(i); // Eliminar la vida si sale de la pantalla
+            }
+        }
+
 
         //Si el jugador se ha quedado sin vidas, pierde
         if(jugador.vidas<=0 && jugador.activo){
