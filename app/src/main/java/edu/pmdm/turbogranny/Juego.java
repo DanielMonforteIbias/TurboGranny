@@ -119,23 +119,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         heart=Bitmap.createScaledBitmap(heart, (int)(heart.getWidth()*1.3), (int)(heart.getHeight()*1.3), true); //Hacemos el sprite un 1.3 mas grande
 
 
-        // Cargar fotogramas de la moneda
-        fotogramasMoneda = new Bitmap[6];
-        fotogramasMoneda[0] = BitmapFactory.decodeResource(getResources(), R.drawable.coin0);
-        fotogramasMoneda[1] = BitmapFactory.decodeResource(getResources(), R.drawable.coin1);
-        fotogramasMoneda[2] = BitmapFactory.decodeResource(getResources(), R.drawable.coin2);
-        fotogramasMoneda[3] = BitmapFactory.decodeResource(getResources(), R.drawable.coin3);
-        fotogramasMoneda[4] = BitmapFactory.decodeResource(getResources(), R.drawable.coin4);
-        fotogramasMoneda[5] = BitmapFactory.decodeResource(getResources(), R.drawable.coin5);
-
-        for (int i = 0; i < fotogramasMoneda.length; i++) {
-            fotogramasMoneda[i] = Bitmap.createScaledBitmap(
-                    fotogramasMoneda[i],
-                    (int)(fotogramasMoneda[i].getWidth() * 1.5),
-                    (int)(fotogramasMoneda[i].getHeight() * 1.5),
-                    true
-            );
-        }
         //GENERAR ENEMIGOS
         generacionEnemigos();
         programarSiguienteMoneda();
@@ -149,13 +132,16 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
 
     private void crearMoneda() {
         // Posición X aleatoria dentro de la pantalla
-        int x = random.nextInt(maxX - fotogramasMoneda[0].getWidth());
+        int x = random.nextInt(maxX - 150);
         // La moneda inicia justo arriba de la pantalla
-        int y = -fotogramasMoneda[0].getHeight();
+        int y = -100;
 
-        Moneda moneda = new Moneda(this, fotogramasMoneda, x, y);
+        Moneda moneda = new Moneda(this, R.drawable.coin, x, y);
         monedas.add(moneda);
     }
+
+
+
 
     private void programarSiguienteMoneda() {
         // Intervalo aleatorio entre 1.5 y 3.5 segundos
@@ -260,6 +246,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
                 @Override
                 public void run() {
                     bucleJuego.fin(); //Paramos el bucle del juego
+                    actualizarMonedasGanadas();
                     context.finish();
                 }
             }, 1500); //Se cerrara tras 1 segundo y medio
@@ -280,17 +267,15 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     }
 
 
-
-
     @Override
     public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-
     }
 
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
 
     }
+
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -326,6 +311,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         }
         return true;
     }
+
+
     public void terminarPartida(){
         soundPool.stop(engineSoundId);
         bucleJuego.fin();
