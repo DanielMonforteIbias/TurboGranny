@@ -62,6 +62,17 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     public int[]claxonSonidos={R.raw.claxon1,R.raw.claxon2,R.raw.claxon3,R.raw.claxon4};
 
     public BucleJuego bucleJuego;
+    private ArrayList<Moneda> monedas = new ArrayList<>();
+
+    private Handler manejadorMonedas = new Handler();
+    private Runnable generarMoneda = new Runnable() {
+        @Override
+        public void run() {
+            crearMoneda();
+            programarSiguienteMoneda();
+        }
+    };
+    private Bitmap[] fotogramasMoneda;
 
     public Juego(AppCompatActivity context) {
         super(context);
@@ -85,6 +96,9 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         mapHeight = mapa.getHeight(); // Actualizar el nuevo alto después de la escala
         mapWidth = maxX; // Ancho ahora es el de la pantalla
         posMapaY = -mapHeight + maxY;
+
+
+
         //CREAMOS Y POSICIONAMOS JUGADOR
         jugador=new Jugador(this,BitmapFactory.decodeResource(getResources(), carId));
         jugador.posY = maxY - jugador.spriteHeight;
@@ -101,8 +115,27 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         heart =BitmapFactory.decodeResource(getResources(),R.drawable.heart);
         heart=Bitmap.createScaledBitmap(heart, (int)(heart.getWidth()*1.3), (int)(heart.getHeight()*1.3), true); //Hacemos el sprite un 1.3 mas grande
 
+
+        // Cargar fotogramas de la moneda
+        fotogramasMoneda = new Bitmap[6];
+        fotogramasMoneda[0] = BitmapFactory.decodeResource(getResources(), R.drawable.coin0);
+        fotogramasMoneda[1] = BitmapFactory.decodeResource(getResources(), R.drawable.coin1);
+        fotogramasMoneda[2] = BitmapFactory.decodeResource(getResources(), R.drawable.coin2);
+        fotogramasMoneda[3] = BitmapFactory.decodeResource(getResources(), R.drawable.coin3);
+        fotogramasMoneda[4] = BitmapFactory.decodeResource(getResources(), R.drawable.coin4);
+        fotogramasMoneda[5] = BitmapFactory.decodeResource(getResources(), R.drawable.coin5);
+
+        for (int i = 0; i < fotogramasMoneda.length; i++) {
+            fotogramasMoneda[i] = Bitmap.createScaledBitmap(
+                    fotogramasMoneda[i],
+                    (int)(fotogramasMoneda[i].getWidth() * 1.5),
+                    (int)(fotogramasMoneda[i].getHeight() * 1.5),
+                    true
+            );
+        }
         //GENERAR ENEMIGOS
         generacionEnemigos();
+        programarSiguienteMoneda();
 
         //Creamos el Gameloop
         bucleJuego = new BucleJuego(getHolder(), this);
@@ -111,10 +144,29 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         bucleJuego.start();
     }
 
+    private void crearMoneda() {
+        // Posición X aleatoria dentro de la pantalla
+        int x = random.nextInt(maxX - fotogramasMoneda[0].getWidth());
+        // La moneda inicia justo arriba de la pantalla
+        int y = -fotogramasMoneda[0].getHeight();
+
+        Moneda moneda = new Moneda(this, fotogramasMoneda, x, y);
+        monedas.add(moneda);
+    }
+
+    private void programarSiguienteMoneda() {
+        // Intervalo aleatorio entre 1.5 y 3.5 segundos
+        double delay = 1500.0 + (random.nextDouble() * 2000.0);
+        manejadorMonedas.postDelayed(generarMoneda, (long) delay);
+    }
+
+
     private void generacionEnemigos(){
         double delay=1000.0+(random.nextDouble()*(2000.0));
         handler.postDelayed(generarEnemigo,(long)delay);
     }
+
+
 
     public void render(Canvas canvas) {
         if (canvas != null) {
@@ -138,6 +190,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             }
             for(int i=0;i<explosiones.size();i++){
                 explosiones.get(i).render(canvas,paint);
+            }
+            // Dibujar monedas
+            for (int i = 0; i < monedas.size(); i++) {
+                monedas.get(i).dibujar(canvas, paint);
             }
 
             //La interfaz se pinta lo ultimo para que esté por encima de lo demas
@@ -172,6 +228,21 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         for(int i=0;i<explosiones.size();i++){
             explosiones.get(i).update();
             if(explosiones.get(i).finished()) explosiones.remove(i);
+        }
+
+        // Actualizar monedas
+        for (int i = 0; i < monedas.size(); i++) {
+            Moneda moneda = monedas.get(i);
+            moneda.actualizar();
+
+            // Si la moneda colisiona con el jugador, se recoge
+            if (moneda.obtenerHitbox().intersect(jugador.getHitbox())) {
+            //    sumarMoneda();  // Se suma la moneda a SharedPreferences
+                monedas.remove(i);
+            } else if (moneda.posY > maxY) {
+                // Si la moneda se sale de la pantalla, se elimina
+                monedas.remove(i);
+            }
         }
 
         //Si el jugador se ha quedado sin vidas, pierde
