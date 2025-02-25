@@ -20,8 +20,10 @@ public class ActividadJuego extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        int carId=getIntent().getIntExtra("carId",R.drawable.car1); //Por defecto sera el coche1
         j = new Juego(this);
         setContentView(j);
+        j.carId=carId;
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); //Bloqueamos actividad en vertical
     }
 

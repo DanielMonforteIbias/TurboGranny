@@ -1,9 +1,17 @@
 package edu.pmdm.turbogranny;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -11,28 +19,79 @@ import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-public class MainActivity extends AppCompatActivity {
+import edu.pmdm.turbogranny.databinding.ActivityMainBinding;
 
+public class MainActivity extends AppCompatActivity {
+    private ActivityMainBinding binding;
+    private int carIndex=0;
+    private int[]cars={R.drawable.car1,R.drawable.car2,R.drawable.car3}; //Necesario para mostrar y animar solo la imagen de los coches quietos
+    private int[]carsSpriteSheets={R.drawable.car1spritesheet,R.drawable.car2spritesheet,R.drawable.car3spritesheet}; //Necesario para pasar el spritesheet correcto
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        binding= ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-
-        TextView welcomeText = findViewById(R.id.welcome_text);
-        welcomeText.setText("¡Bienvenido a Turbo Granny!");
-
-
-        Button startButton = findViewById(R.id.start_button);
-        startButton.setOnClickListener(v -> {
+        changeCar();
+        binding.startButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, ActividadJuego.class);
+            intent.putExtra("carId",carsSpriteSheets[carIndex]);
             startActivity(intent);
         });
+        binding.imgBtnLeftArrow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                carIndex =(carIndex-1+cars.length)%cars.length; //Nos movemos 1 hacia atras, asegurando que vaya al ultimo si estamos en el primero
+                changeCar();
+            }
+        });
+        binding.imgBtnRightArrow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                carIndex=(carIndex+1)%cars.length; //Nos movemos 1 hacia delante, asegurando que vaya al primero si estamos en el ultimo
+                changeCar();
+            }
+        });
+
+        animarBoton();
+        animarMoneda();
     }
 
+    private void changeCar(){
+        binding.imgCar.setImageBitmap(BitmapFactory.decodeResource(getResources(),cars[carIndex]));
+    }
 
+    private void animarBoton(){
+        AnimatorSet btnAnimator=new AnimatorSet();
+        Button btn=findViewById(R.id.start_button);
+        ObjectAnimator color=ObjectAnimator.ofArgb(btn,"backgroundColor", ContextCompat.getColor(this,R.color.car1red),ContextCompat.getColor(this,R.color.car1blue));
+        color.setDuration(1500);
+        color.setRepeatCount(ObjectAnimator.INFINITE);
+        color.setRepeatMode(ObjectAnimator.REVERSE);
+
+        ObjectAnimator scaleX = ObjectAnimator.ofFloat(btn, "scaleX", 1f, 1.05f, 1f);
+        ObjectAnimator scaleY = ObjectAnimator.ofFloat(btn, "scaleY", 1f, 1.05f, 1f);
+        scaleX.setDuration(2000);
+        scaleY.setDuration(2000);
+        scaleX.setRepeatCount(ObjectAnimator.INFINITE);
+        scaleY.setRepeatCount(ObjectAnimator.INFINITE);
+        scaleX.setRepeatMode(ObjectAnimator.REVERSE);
+        scaleY.setRepeatMode(ObjectAnimator.REVERSE);
+
+        btnAnimator.play(color).with(scaleX).with(scaleY);
+        btnAnimator.start();
+    }
+
+    private void animarMoneda(){
+        AnimationDrawable coinAnimation;
+        ImageView coinImage=findViewById(R.id.imgCoin);
+        coinImage.setBackgroundResource(R.drawable.coin_animation);
+        coinAnimation= (AnimationDrawable) coinImage.getBackground();
+        coinAnimation.start();
+    }
 }
