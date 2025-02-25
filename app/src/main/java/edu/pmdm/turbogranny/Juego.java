@@ -74,14 +74,40 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             programarSiguienteMoneda();
         }
     };
-    private Bitmap[] fotogramasMoneda;
     private int monedasPartida = 0;
+
+    private boolean juegoPausado = false;
 
     public Juego(AppCompatActivity context) {
         super(context);
         holder = getHolder();
         holder.addCallback(this);
         this.context = context;
+    }
+
+    public void pausarJuego() {
+        juegoPausado = true;
+        if (bucleJuego != null) {
+            bucleJuego.fin(); // Detenemos el bucle del juego
+        }
+        if (soundPool != null) {
+            soundPool.autoPause(); // Pausamos todos los sonidos
+        }
+        handler.removeCallbacks(generarEnemigo); // Detenemos la generación de enemigos
+        manejadorMonedas.removeCallbacks(generarMoneda); // Detener la generación de monedas
+    }
+
+    public void reanudarJuego() {
+        juegoPausado = false;
+        if (bucleJuego == null || !bucleJuego.JuegoEnEjecucion) {
+            bucleJuego = new BucleJuego(getHolder(), this);
+            bucleJuego.start(); // Reanudar el bucle del juego
+        }
+        if (soundPool != null) {
+            soundPool.autoResume(); // Reanudar todos los sonidos
+        }
+        generacionEnemigos(); // Reanudar la generación de enemigos
+        programarSiguienteMoneda(); // Reanudar la generación de monedas
     }
 
     @Override
@@ -130,6 +156,9 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         bucleJuego.start();
     }
 
+
+
+
     private void crearMoneda() {
         // Posición X aleatoria dentro de la pantalla
         int x = random.nextInt(maxX - 150);
@@ -143,21 +172,25 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
 
 
 
-    private void programarSiguienteMoneda() {
-        // Intervalo aleatorio entre 1.5 y 3.5 segundos
-        double delay = 1500.0 + (random.nextDouble() * 2000.0);
-        manejadorMonedas.postDelayed(generarMoneda, (long) delay);
+    private void generacionEnemigos() {
+        if (!juegoPausado) {
+            double delay = 1000.0 + (random.nextDouble() * 2000.0);
+            handler.postDelayed(generarEnemigo, (long) delay);
+        }
     }
 
-
-    private void generacionEnemigos(){
-        double delay=1000.0+(random.nextDouble()*(2000.0));
-        handler.postDelayed(generarEnemigo,(long)delay);
+    private void programarSiguienteMoneda() {
+        if (!juegoPausado) {
+            double delay = 1500.0 + (random.nextDouble() * 2000.0);
+            manejadorMonedas.postDelayed(generarMoneda, (long) delay);
+        }
     }
 
 
 
     public void render(Canvas canvas) {
+
+
         if (canvas != null) {
             Paint paint = new Paint();
             paint.setStyle(Paint.Style.STROKE);
@@ -194,6 +227,9 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     }
 
     public void update() {
+        if (juegoPausado) {
+            return; // No actualizar nada si el juego está pausado
+        }
         frameCount++;
         //MOVIMIENTO MAPA
         posMapaY += velMapa;
@@ -267,6 +303,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     }
 
 
+
+
     @Override
     public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
     }
@@ -313,9 +351,15 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     }
 
 
-    public void terminarPartida(){
-        soundPool.stop(engineSoundId);
-        bucleJuego.fin();
-        context.finish();
+    public void terminarPartida() {
+        if (bucleJuego != null) {
+            bucleJuego.fin(); // Detener el bucle del juego
+        }
+        if (soundPool != null) {
+            soundPool.stop(engineSoundId); // Detener el sonido del motor
+        }
+        if (context != null) {
+            context.finish(); // Cerrar la actividad
+        }
     }
 }
