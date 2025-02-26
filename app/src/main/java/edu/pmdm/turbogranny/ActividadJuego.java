@@ -5,7 +5,10 @@ import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import android.window.OnBackInvokedDispatcher;
 
 import androidx.activity.EdgeToEdge;
@@ -48,26 +51,32 @@ public class ActividadJuego extends AppCompatActivity {
     }
 
     private void mostrarDialogoReanudar() {
-        new AlertDialog.Builder(this)
-                .setTitle("Juego en pausa")
-                .setMessage("¿Quieres reanudar la partida o salir?")
-                .setPositiveButton("Reanudar", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        juegoPausado = false;
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_pause, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+        Button btnResume = dialogView.findViewById(R.id.btnReanudar);
+        Button btnExit = dialogView.findViewById(R.id.btnCancelar);
 
-                        j.reanudarJuego();
-                    }
-                })
-                .setNegativeButton("Salir", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        j.terminarPartida(); // Terminamos la partida
-                        finish(); // Cerramos la actividad
-                    }
-                })
-                .setCancelable(false) // Evitamos que el usuario cierre el diálogo sin elegir algo
-                .show();
+        btnResume.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                juegoPausado = false;
+                j.reanudarJuego();
+                dialog.dismiss();
+            }
+        });
+        btnExit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                j.terminarPartida(); //Terminamos la partida
+                finish(); //Cerramos la actividad
+            }
+        });
+        dialog.setCancelable(false);
+        dialog.show();
     }
 
     private void hideSystemUI() {
@@ -90,10 +99,6 @@ public class ActividadJuego extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
 
     @Override
     public void onBackPressed() {
