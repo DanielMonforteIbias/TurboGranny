@@ -5,5 +5,7 @@
     <string name="aceptar">Aceptar</string>
     <string name="cancelar">Cancelar</string>
     <string name="pausa">Juego en pausa</string>
+    <string name="nickname">Nickname</string>
+    <string name="records">Records</string>
     <string name="pausa_mensaje">¿Quieres reanudar la partida o salir?</string>
 </resources>

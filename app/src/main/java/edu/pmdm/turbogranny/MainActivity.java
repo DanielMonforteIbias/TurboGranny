@@ -10,6 +10,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.AnimationDrawable;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.LayoutInflater;
@@ -22,6 +24,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+
+import java.util.HashMap;
+
 import edu.pmdm.turbogranny.databinding.ActivityMainBinding;
 
 
@@ -37,6 +42,9 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences preferencias;
     private SharedPreferences.Editor editor;
 
+    private SoundPool soundPoolMain;
+    int changeCarSound, buySound, okaySound;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,8 +53,10 @@ public class MainActivity extends AppCompatActivity {
         preferencias=getSharedPreferences("DatosJuego",MODE_PRIVATE);
         editor=preferencias.edit();
 
+        cargarSoundPoolMain();
         int totalMonedas = preferencias.getInt("monedas", 000); // Obtener y mostrar el total de monedas guardado en SharedPreferences
         nickname=preferencias.getString("nickname","USER"); //Obtener el nickname de preferencias
+
         binding.txtNickname.setText(nickname);
         binding.txtCoins.setText(String.valueOf(totalMonedas));
         binding.imgCar.setImageBitmap(BitmapFactory.decodeResource(getResources(),cars[carIndex]));
@@ -66,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
                 if(!changingCar){
                     carIndex =(carIndex-1+cars.length)%cars.length; //Nos movemos 1 hacia atras, asegurando que vaya al ultimo si estamos en el primero
                     changeCar(-1);
+                    playSound(changeCarSound);
                 }
             }
         });
@@ -75,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
                 if(!changingCar){
                     carIndex=(carIndex+1)%cars.length; //Nos movemos 1 hacia delante, asegurando que vaya al primero si estamos en el ultimo
                     changeCar(1);
+                    playSound(changeCarSound);
                 }
 
             }
@@ -117,6 +129,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        binding.imgBtnLeaderboards.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LayoutInflater inflater = getLayoutInflater();
+                View dialogView = inflater.inflate(R.layout.dialog_leaderboards,null);
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setView(dialogView);
+                AlertDialog dialog = builder.create();
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+                Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+                btnCancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                    }
+                });
+                dialog.show();
+            }
+        });
+
         screenWidth=getResources().getDisplayMetrics().widthPixels;
         binding.imgCar.getLocationOnScreen(carLocation);
         carX = carLocation[0];
@@ -124,6 +156,12 @@ public class MainActivity extends AppCompatActivity {
         animarMoneda();
     }
 
+    private void cargarSoundPoolMain(){
+        soundPoolMain=new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
+        changeCarSound=soundPoolMain.load(this,R.raw.change,1);
+        buySound=soundPoolMain.load(this,R.raw.buy,1);
+        okaySound=soundPoolMain.load(this,R.raw.okay,1);
+    }
     private void changeCar(int direccion){ //Direccion es -1 a la izquierda, 1 a la derecha
         changingCar=true;
         AnimatorSet carAnimator=new AnimatorSet();
@@ -184,6 +222,10 @@ public class MainActivity extends AppCompatActivity {
         coinImage.setBackgroundResource(R.drawable.coin_animation);
         coinAnimation= (AnimationDrawable) coinImage.getBackground();
         coinAnimation.start();
+    }
+
+    private void playSound(int soundId){
+        soundPoolMain.play(soundId,1,1,0,0,1);
     }
 
     @Override

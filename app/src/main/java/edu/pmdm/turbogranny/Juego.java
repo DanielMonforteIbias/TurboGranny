@@ -168,7 +168,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     private void cargarSoundpool(){
         //Sonido de motor
         soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0); //10 sonidos a la vez
-        engineSoundId = soundPool.load(context, R.raw.engine, 1);
+        engineSoundId = soundPool.load(context, R.raw.engine2, 1);
         coinSoundId = soundPool.load(context, R.raw.coin, 1);
         healSoundId = soundPool.load(context, R.raw.heal, 1);
         accidentSoundId=soundPool.load(context,R.raw.carbreak,1);
