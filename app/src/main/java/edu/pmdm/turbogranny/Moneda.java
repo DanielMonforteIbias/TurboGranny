@@ -13,6 +13,7 @@ public class Moneda {
     private int fotogramaActual = 0;   // Índice del fotograma que se está mostrando
     private int anchoFotograma;
     private int altoFotograma;
+    public final int PUNTOS=175;
 
     public float posX, posY;          // Posición de la moneda
     private float velocidad = 20f;    // Velocidad de caída

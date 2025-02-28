@@ -1,26 +1,51 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/black"
     android:gravity="center|top"
     android:orientation="vertical"
-    android:padding="20dp">
+    android:padding="10dp">
 
-    <TextView
-        android:id="@+id/dialogTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <LinearLayout
+        android:id="@+id/titleLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_marginBottom="10dp"
-        android:fontFamily="@font/joystix_monospace"
         android:gravity="center"
-        android:text="@string/records"
-        android:textColor="@color/white"
-        android:textSize="22sp" />
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/imgMedal1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            app:srcCompat="@drawable/leaderboards" />
+
+        <TextView
+            android:id="@+id/dialogTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:fontFamily="@font/joystix_monospace"
+            android:gravity="center"
+            android:text="@string/records"
+            android:textColor="@color/white"
+            android:textSize="30sp" />
+
+        <ImageView
+            android:id="@+id/imgMedal2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            app:srcCompat="@drawable/leaderboards" />
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_margin="10dp" />
 
     <LinearLayout
         android:id="@+id/layoutButtons"
