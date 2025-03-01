@@ -4,4 +4,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="car1red">#FF0049</color>
     <color name="car1blue">#2492FF</color>
+    <color name="car2yellow">#D9E620</color>
 </resources>

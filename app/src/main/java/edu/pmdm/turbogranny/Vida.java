@@ -14,6 +14,7 @@ public class Vida {
     public float posX, posY;
     public float velocidad = 35f; // Velocidad de caída (ajusta este valor para que sea rápido)
     private boolean activa = true;
+    public final int PUNTOS=500;
 
     public Vida(Juego juego, Bitmap spriteSheet, float x, float y) {
         this.juego = juego;
