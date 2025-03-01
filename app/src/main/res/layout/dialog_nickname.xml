@@ -13,7 +13,7 @@
         android:layout_marginBottom="10dp"
         android:fontFamily="@font/joystix_monospace"
         android:gravity="center"
-        android:text="Nickname"
+        android:text="@string/nickname"
         android:textColor="@color/white"
         android:textSize="18sp" />
 
@@ -25,7 +25,7 @@
         android:maxLength="10"
         android:background="@drawable/edittext_background"
         android:fontFamily="@font/joystix_monospace"
-        android:hint="Nickname"
+        android:hint="@string/nickname"
         android:inputType="text"
         android:padding="8dp"
         android:textColor="@color/black"

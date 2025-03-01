@@ -2,12 +2,14 @@ package edu.pmdm.turbogranny;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Handler;
@@ -18,6 +20,7 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.view.MotionEventCompat;
 
 import java.util.ArrayList;
@@ -37,13 +40,16 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     public int frameCount = 0;
     private static final int textoInicialX = 50;
 
+    //JUGADOR
     private Jugador jugador;
     public int carId;
 
+    //SONIDOS
     private SoundPool soundPool;
     private int engineSoundId, coinSoundId, healSoundId, accidentSoundId; //Necesario guardar todos los ids para que el soundpool funcione
     private Bitmap heart;
 
+    //ENEMIGOS
     private ArrayList<Enemigo> enemigos=new ArrayList<>();
     private int[] enemigosImagenes={R.drawable.enemy1,R.drawable.enemy2,R.drawable.enemy3,R.drawable.enemy4,R.drawable.enemy5,R.drawable.enemy6,R.drawable.enemy7,R.drawable.enemy8,R.drawable.enemy9};
 
@@ -58,10 +64,12 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         }
     };
 
+    //EXPLOSIONES
     private ArrayList<Explosion> explosiones=new ArrayList<Explosion>();
-    public int[]explosionesSonidos={R.raw.explosion1,R.raw.explosion2,R.raw.explosion3};
+    public int[]explosionesSonidos={R.raw.explosion1,R.raw.explosion2,R.raw.explosion3,R.raw.explosion4,R.raw.explosion5};
     public int[]claxonSonidos={R.raw.claxon1,R.raw.claxon2,R.raw.claxon3,R.raw.claxon4};
 
+    //MONEDAS
     public BucleJuego bucleJuego;
     private ArrayList<Moneda> monedas = new ArrayList<>();
 
@@ -75,7 +83,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     };
     private int monedasPartida = 0;
 
+    //PAUSA
     private boolean juegoPausado = false;
+
+    //VIDAS
     private ArrayList<Vida> vidas = new ArrayList<>(); // Lista de vidas
     private Bitmap heartSpritesheet;
     private Handler manejadorVidas = new Handler();
@@ -86,6 +97,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             programarSiguienteVida();
         }
     };
+    //PUNTOS
+    private long puntosPartida=0;
+    private final int INCREMENTO_PUNTOS=100;
+
 
     public Juego(AppCompatActivity context) {
         super(context);
@@ -170,7 +185,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     private void cargarSoundpool(){
         //Sonido de motor
         soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0); //10 sonidos a la vez
-        engineSoundId = soundPool.load(context, R.raw.engine, 1);
+        engineSoundId = soundPool.load(context, R.raw.engine2, 1);
         coinSoundId = soundPool.load(context, R.raw.coin, 1);
         healSoundId = soundPool.load(context, R.raw.heal, 1);
         accidentSoundId=soundPool.load(context,R.raw.carbreak,1);
@@ -239,15 +254,18 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             paint.setStyle(Paint.Style.STROKE);
             canvas.drawColor(Color.RED);
             canvas.drawBitmap(mapa, posMapaX, posMapaY, null);
+            //Fuente de la letra
+            Typeface typeface = ResourcesCompat.getFont(context, R.font.joystix_monospace);
+            paint.setTypeface(typeface);
 
             paint.setStyle(Paint.Style.FILL);
             paint.setTextSize(40);
             paint.setColor(Color.WHITE);
-            Rect textBounds = new Rect();
+            /*Rect textBounds = new Rect();
             paint.getTextBounds("Frames ejecutados", 0, 1, textBounds);
-            canvas.drawText("Frames ejecutados: " + frameCount, textoInicialX, maxY- textBounds.height(), paint);
+            canvas.drawText("Frames ejecutados: " + frameCount, textoInicialX, maxY- textBounds.height(), paint);*/
 
-            jugador.render(canvas,paint);
+            jugador.render(canvas,paint); //Pintamos el jugador
 
             //Pintamos los enemigos
             for(int i=0;i<enemigos.size();i++){ //Se usa for normal y no foreach para evitar ConcurrentModificationException
@@ -271,6 +289,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             for (int i = 0; i < jugador.vidas; i++) {
                 canvas.drawBitmap(heart, 50 +heart.getWidth()*i, 50, null);
             }
+            //Pintamos los puntos
+            paint.setTextSize(60);
+            String puntosTexto=String.valueOf(puntosPartida);
+            canvas.drawText(puntosTexto, maxX-paint.measureText(puntosTexto)-20, 100, paint);
         }
     }
 
@@ -291,6 +313,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             enemigo.update(enemigos);
             if(enemigo.getHitbox().intersect(jugador.getHitbox())){
                 jugador.vidas--; //Restamos una vida al jugador
+                puntosPartida+=enemigo.PUNTOS;
                 explosiones.add(new Explosion(this,BitmapFactory.decodeResource(getResources(),R.drawable.explosion),enemigo.posX,enemigo.posY));
                 enemigos.remove(i);
             }
@@ -313,6 +336,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             if (moneda.obtenerHitbox().intersect(jugador.getHitbox())) {
                 monedasPartida++; //Se suma la moneda a SharedPreferences
                 playSound(coinSoundId);
+                puntosPartida+=moneda.PUNTOS;
                 monedas.remove(i);
             } else if (moneda.posY > maxY) {
                 //Si la moneda se sale de la pantalla, se elimina
@@ -328,10 +352,15 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             if (vida.isActiva() && jugador.activo && vida.getHitbox().intersect(jugador.getHitbox())) { //Se coge solo si la vida y el jugador estan activos, para que no se coja si el jugador ha muerto
                 jugador.vidas++; //Aumentar las vidas del jugador
                 playSound(healSoundId);
+                puntosPartida+=vida.PUNTOS;
                 vidas.remove(i); //Eliminar la vida recolectada
             } else if (!vida.isActiva()) {
                 vidas.remove(i); //Eliminar la vida si sale de la pantalla
             }
+        }
+        //Cada 5 frames, si el jugador esta activo
+        if(jugador.activo && frameCount%10==0){
+            puntosPartida+=INCREMENTO_PUNTOS; //Incrementamos los puntos
         }
 
 
@@ -349,6 +378,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
                 public void run() {
                     bucleJuego.fin(); //Paramos el bucle del juego
                     actualizarMonedasGanadas();
+                    actualizarUltimaPuntuacion();
+                    context.setResult(Activity.RESULT_OK);
                     context.finish();
                 }
             }, 1500); //Se cerrara tras 1 segundo y medio
@@ -370,8 +401,12 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
                 .apply();
     }
 
-
-
+    private void actualizarUltimaPuntuacion() {
+        context.getSharedPreferences("DatosJuego", MODE_PRIVATE)
+                .edit()
+                .putLong("ultimaPuntuacion", puntosPartida)
+                .apply();
+    }
 
     @Override
     public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
@@ -424,7 +459,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             bucleJuego.fin(); // Detener el bucle del juego
         }
         if (soundPool != null) {
-            soundPool.stop(engineSoundId); // Detener el sonido del motor
+            soundPool.release();
         }
         if (context != null) {
             context.finish(); // Cerrar la actividad

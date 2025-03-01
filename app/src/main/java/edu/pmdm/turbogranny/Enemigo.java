@@ -18,6 +18,7 @@ public class Enemigo {
     public float velX, velY;
     private float minSpeed = 10; // necesitamos una velocidad minima para no quedar atascados
     private boolean activo;
+    public final int PUNTOS=-270;
     private MediaPlayer mediaPlayer;
 
     public Enemigo(Juego j, Bitmap sprite) {
