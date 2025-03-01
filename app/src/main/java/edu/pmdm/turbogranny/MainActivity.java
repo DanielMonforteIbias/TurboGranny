@@ -117,6 +117,22 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        binding.imgBtnShop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setMessage("Comming soon!")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                AlertDialog dialog = builder.create();
+                dialog.show();
+            }
+        });
+
         screenWidth=getResources().getDisplayMetrics().widthPixels;
         binding.imgCar.getLocationOnScreen(carLocation);
         carX = carLocation[0];

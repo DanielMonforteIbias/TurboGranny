@@ -106,6 +106,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         }
         handler.removeCallbacks(generarEnemigo); // Detenemos la generación de enemigos
         manejadorMonedas.removeCallbacks(generarMoneda); // Detener la generación de monedas
+        manejadorVidas.removeCallbacks(generarVida); //Detenemos la generacion de vidas
     }
 
     public void reanudarJuego() {
@@ -119,6 +120,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         }
         generacionEnemigos(); // Reanudar la generación de enemigos
         programarSiguienteMoneda(); // Reanudar la generación de monedas
+        programarSiguienteVida(); //Reanudar la generacion de vidas
     }
 
     @Override
@@ -194,9 +196,12 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     }
 
     private void programarSiguienteVida() {
-        // Intervalo aleatorio entre 30 y 50 segundos
-        long delay = 30000 + (long) (random.nextDouble() * 20000); // 30,000 ms = 30 segundos, 20,000 ms = 20 segundos adicionales
-        manejadorVidas.postDelayed(generarVida, delay);
+        if(!juegoPausado){
+            // Intervalo aleatorio entre 30 y 50 segundos
+            long delay = 30000 + (long) (random.nextDouble() * 20000); // 30,000 ms = 30 segundos, 20,000 ms = 20 segundos adicionales
+            manejadorVidas.postDelayed(generarVida, delay);
+        }
+
     }
 
     private void crearMoneda() {
