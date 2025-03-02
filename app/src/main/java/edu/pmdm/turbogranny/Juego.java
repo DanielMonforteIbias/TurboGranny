@@ -100,6 +100,11 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     //PUNTOS
     private long puntosPartida=0;
     private final int INCREMENTO_PUNTOS=100;
+    private Pow pow;
+    private Bitmap powSpriteSheet;
+    private boolean efectoPowActivo = false;
+    private float shakeIntensity = 0;
+    private long tiempoEfectoPow;
 
 
     public Juego(AppCompatActivity context) {
@@ -167,6 +172,9 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
 
         // Cargar el sprite del corazón
         heartSpritesheet = BitmapFactory.decodeResource(getResources(), R.drawable.redheartspritesheet);
+
+        powSpriteSheet = BitmapFactory.decodeResource(getResources(), R.drawable.pow);
+        pow = new Pow(this, powSpriteSheet);
 
         // Generar la primera vida
         programarSiguienteVida();
@@ -252,6 +260,17 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         if (canvas != null) {
             Paint paint = new Paint();
             paint.setStyle(Paint.Style.STROKE);
+            float offsetY=0;
+            float offsetX=0;
+            if(shakeIntensity > 0) {
+                 offsetX = (float) (Math.random() * shakeIntensity * 2 - shakeIntensity);
+                 offsetY = (float) (Math.random() * shakeIntensity * 2 - shakeIntensity);
+                canvas.translate(offsetX, offsetY);
+            }
+
+
+
+
             canvas.drawColor(Color.RED);
             canvas.drawBitmap(mapa, posMapaX, posMapaY, null);
             //Fuente de la letra
@@ -289,6 +308,12 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             for (int i = 0; i < jugador.vidas; i++) {
                 canvas.drawBitmap(heart, 50 +heart.getWidth()*i, 50, null);
             }
+
+            if(shakeIntensity > 0) {
+                canvas.translate(-offsetX, -offsetY);
+            }
+            pow.render(canvas, paint);
+
             //Pintamos los puntos
             paint.setTextSize(60);
             String puntosTexto=String.valueOf(puntosPartida);
@@ -296,10 +321,46 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         }
     }
 
+    public void activarEfectoPow() {
+        efectoPowActivo = true;
+        tiempoEfectoPow = System.currentTimeMillis();
+        shakeIntensity = 40f;
+
+        // Hacer explotar todos los enemigos
+        for (Enemigo enemigo : enemigos) {
+            explosiones.add(new Explosion(
+                    this,
+                    BitmapFactory.decodeResource(getResources(), R.drawable.explosion),
+                    enemigo.posX,
+                    enemigo.posY
+            ));
+
+            // Sonido de explosión aleatorio
+            int sonidoExplosion = explosionesSonidos[random.nextInt(explosionesSonidos.length)];
+            soundPool.play(sonidoExplosion, 1, 1, 0, 0, 1);
+        }
+
+        enemigos.clear(); // Limpiar la lista después de crear las explosiones
+
+        // Sonido del POW
+        soundPool.play(healSoundId, 1, 1, 0, 0, 1);
+
+    }
+
+    public Rect getJugadorHitbox() {
+        return jugador.getHitbox();
+    }
+
     public void update() {
         if (juegoPausado) {
             return; // No actualizar nada si el juego está pausado
         }
+        if (!efectoPowActivo) {
+            pow.generar();
+            pow.update();
+        }
+
+
         frameCount++;
         //MOVIMIENTO MAPA
         posMapaY += velMapa;
@@ -307,6 +368,12 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             posMapaY = -mapHeight + maxY;
         }
         jugador.update();
+        if (efectoPowActivo && System.currentTimeMillis() - tiempoEfectoPow < 1000) {
+            shakeIntensity = 20 - (System.currentTimeMillis() - tiempoEfectoPow) / 50f;
+        } else {
+            efectoPowActivo = false;
+            shakeIntensity = 0;
+        }
         //Actualizamos los enemigos
         for(int i=0;i<enemigos.size();i++){ //Se usa for normal y no foreach para evitar ConcurrentModificationException
             Enemigo enemigo=enemigos.get(i);
