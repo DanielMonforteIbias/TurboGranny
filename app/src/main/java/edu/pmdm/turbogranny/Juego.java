@@ -3,6 +3,8 @@ package edu.pmdm.turbogranny;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -63,6 +65,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             generacionEnemigos();
         }
     };
+    private long pauseStartTime; // Para rastrear cuándo comienza la pausa
+
 
     //EXPLOSIONES
     private ArrayList<Explosion> explosiones=new ArrayList<Explosion>();
@@ -100,6 +104,11 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     //PUNTOS
     private long puntosPartida=0;
     private final int INCREMENTO_PUNTOS=100;
+    private Pow pow;
+    private Bitmap powSpriteSheet;
+    private boolean efectoPowActivo = false;
+    private float shakeIntensity = 0;
+    private long tiempoEfectoPow;
 
 
     public Juego(AppCompatActivity context) {
@@ -113,6 +122,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
 
     public void pausarJuego() {
         juegoPausado = true;
+        pauseStartTime = System.currentTimeMillis(); // Registrar inicio de la pausa
+
         if (bucleJuego != null) {
             bucleJuego.fin(); // Detenemos el bucle del juego
         }
@@ -122,10 +133,15 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         handler.removeCallbacks(generarEnemigo); // Detenemos la generación de enemigos
         manejadorMonedas.removeCallbacks(generarMoneda); // Detener la generación de monedas
         manejadorVidas.removeCallbacks(generarVida); //Detenemos la generacion de vidas
+
     }
 
     public void reanudarJuego() {
         juegoPausado = false;
+        long pauseDuration = System.currentTimeMillis() - pauseStartTime;
+        if (!pow.isActivo()) {
+            pow.adjustTime(pauseDuration);
+        }
         if (bucleJuego == null || !bucleJuego.JuegoEnEjecucion) {
             bucleJuego = new BucleJuego(getHolder(), this);
             bucleJuego.start(); // Reanudar el bucle del juego
@@ -136,6 +152,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         generacionEnemigos(); // Reanudar la generación de enemigos
         programarSiguienteMoneda(); // Reanudar la generación de monedas
         programarSiguienteVida(); //Reanudar la generacion de vidas
+
     }
 
     @Override
@@ -167,6 +184,12 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
 
         // Cargar el sprite del corazón
         heartSpritesheet = BitmapFactory.decodeResource(getResources(), R.drawable.redheartspritesheet);
+
+        // Solo creamos el POW si aún no existe
+        if (pow == null) {
+            powSpriteSheet = BitmapFactory.decodeResource(getResources(), R.drawable.pow);
+            pow = new Pow(this, powSpriteSheet);
+        }
 
         // Generar la primera vida
         programarSiguienteVida();
@@ -252,6 +275,17 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         if (canvas != null) {
             Paint paint = new Paint();
             paint.setStyle(Paint.Style.STROKE);
+            float offsetY=0;
+            float offsetX=0;
+            if(shakeIntensity > 0) {
+                 offsetX = (float) (Math.random() * shakeIntensity * 2 - shakeIntensity);
+                 offsetY = (float) (Math.random() * shakeIntensity * 2 - shakeIntensity);
+                canvas.translate(offsetX, offsetY);
+            }
+
+
+
+
             canvas.drawColor(Color.RED);
             canvas.drawBitmap(mapa, posMapaX, posMapaY, null);
             //Fuente de la letra
@@ -289,6 +323,12 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             for (int i = 0; i < jugador.vidas; i++) {
                 canvas.drawBitmap(heart, 50 +heart.getWidth()*i, 50, null);
             }
+
+            if(shakeIntensity > 0) {
+                canvas.translate(-offsetX, -offsetY);
+            }
+            pow.render(canvas, paint);
+
             //Pintamos los puntos
             paint.setTextSize(60);
             String puntosTexto=String.valueOf(puntosPartida);
@@ -296,10 +336,51 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         }
     }
 
+    public void activarEfectoPow() {
+        efectoPowActivo = true;
+        tiempoEfectoPow = System.currentTimeMillis();
+        shakeIntensity = 40f;
+
+        // Hacer explotar todos los enemigos
+        for (Enemigo enemigo : enemigos) {
+            explosiones.add(new Explosion(
+                    this,
+                    BitmapFactory.decodeResource(getResources(), R.drawable.explosion),
+                    enemigo.posX,
+                    enemigo.posY
+            ));
+
+            // Sonido de explosión aleatorio
+            int sonidoExplosion = explosionesSonidos[random.nextInt(explosionesSonidos.length)];
+            soundPool.play(sonidoExplosion, 1, 1, 0, 0, 1);
+        }
+
+        enemigos.clear(); // Limpiar la lista después de crear las explosiones
+
+        // Sonido del POW
+        soundPool.play(healSoundId, 1, 1, 0, 0, 1);
+
+    }
+
+    public Rect getJugadorHitbox() {
+        return jugador.getHitbox();
+    }
+
     public void update() {
         if (juegoPausado) {
             return; // No actualizar nada si el juego está pausado
         }
+        if (!efectoPowActivo) {
+            // Solo generar un nuevo POW si no hay uno activo.
+            if (!pow.isActivo()) {
+                pow.generar();
+            }
+            if (pow.isActivo()) {
+                pow.update();
+            }
+        }
+
+
         frameCount++;
         //MOVIMIENTO MAPA
         posMapaY += velMapa;
@@ -307,6 +388,12 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             posMapaY = -mapHeight + maxY;
         }
         jugador.update();
+        if (efectoPowActivo && System.currentTimeMillis() - tiempoEfectoPow < 1000) {
+            shakeIntensity = 20 - (System.currentTimeMillis() - tiempoEfectoPow) / 50f;
+        } else {
+            efectoPowActivo = false;
+            shakeIntensity = 0;
+        }
         //Actualizamos los enemigos
         for(int i=0;i<enemigos.size();i++){ //Se usa for normal y no foreach para evitar ConcurrentModificationException
             Enemigo enemigo=enemigos.get(i);
@@ -376,16 +463,40 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    bucleJuego.fin(); //Paramos el bucle del juego
-                    actualizarMonedasGanadas();
-                    actualizarUltimaPuntuacion();
-                    context.setResult(Activity.RESULT_OK);
-                    context.finish();
+                    new AlertDialog.Builder(context)
+                            .setTitle("¡Game Over!")
+                            .setMessage("¡Has perdido!")
+                            .setPositiveButton("Jugar de nuevo", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    // Reiniciar la actividad para jugar de nuevo
+                                    context.recreate();
+                                }
+                            })
+                            .setNegativeButton("Salir", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    bucleJuego.fin(); // Detenemos el bucle del juego
+                                    actualizarMonedasGanadas();
+                                    actualizarUltimaPuntuacion();
+                                    context.setResult(Activity.RESULT_OK);
+                                    context.finish();
+                                }
+                            })
+                            .setCancelable(false)
+                            .show();
+
                 }
             }, 1500); //Se cerrara tras 1 segundo y medio
 
         }
     }
+    public boolean isJuegoPausado() {
+        return juegoPausado;
+    }
+
 
     private void playSound(int soundId){
         soundPool.play(soundId,1,1,0,0,1);
