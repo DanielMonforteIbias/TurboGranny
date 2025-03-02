@@ -104,13 +104,37 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     //PUNTOS
     private long puntosPartida=0;
     private final int INCREMENTO_PUNTOS=100;
-    private Pow pow;
-    private Bitmap powSpriteSheet;
-    private boolean efectoPowActivo = false;
+
+    //POW
+    private ArrayList<Pow> pows = new ArrayList<>();
+    private Bitmap powSpritesheet;
+    private Handler manejadorPow = new Handler();
+    private Runnable generarPow = new Runnable() {
+        @Override
+        public void run() {
+            crearPow();
+            programarSiguientePow();
+        }
+    };
+
+    // Efecto Shake
     private float shakeIntensity = 0;
     private long tiempoEfectoPow;
 
+    private void crearPow() {
+        if(!juegoPausado) {
+            int x = random.nextInt(maxX - (powSpritesheet.getWidth() / 8)); // 8 fotogramas
+            int y = -powSpritesheet.getHeight();
+            pows.add(new Pow(this, powSpritesheet, x, y));
+        }
+    }
 
+    private void programarSiguientePow() {
+        if(!juegoPausado) {
+            long delay = 40000 + (long)(random.nextDouble() * 20000); // 40-60 segundos
+            manejadorPow.postDelayed(generarPow, delay);
+        }
+    }
     public Juego(AppCompatActivity context) {
         super(context);
         holder = getHolder();
@@ -133,15 +157,13 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         handler.removeCallbacks(generarEnemigo); // Detenemos la generación de enemigos
         manejadorMonedas.removeCallbacks(generarMoneda); // Detener la generación de monedas
         manejadorVidas.removeCallbacks(generarVida); //Detenemos la generacion de vidas
+        manejadorPow.removeCallbacks(generarPow);
 
     }
 
     public void reanudarJuego() {
         juegoPausado = false;
-        long pauseDuration = System.currentTimeMillis() - pauseStartTime;
-        if (!pow.isActivo()) {
-            pow.adjustTime(pauseDuration);
-        }
+
         if (bucleJuego == null || !bucleJuego.JuegoEnEjecucion) {
             bucleJuego = new BucleJuego(getHolder(), this);
             bucleJuego.start(); // Reanudar el bucle del juego
@@ -152,6 +174,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         generacionEnemigos(); // Reanudar la generación de enemigos
         programarSiguienteMoneda(); // Reanudar la generación de monedas
         programarSiguienteVida(); //Reanudar la generacion de vidas
+        programarSiguientePow();
 
     }
 
@@ -185,11 +208,10 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         // Cargar el sprite del corazón
         heartSpritesheet = BitmapFactory.decodeResource(getResources(), R.drawable.redheartspritesheet);
 
-        // Solo creamos el POW si aún no existe
-        if (pow == null) {
-            powSpriteSheet = BitmapFactory.decodeResource(getResources(), R.drawable.pow);
-            pow = new Pow(this, powSpriteSheet);
-        }
+        powSpritesheet = BitmapFactory.decodeResource(getResources(), R.drawable.pow);
+
+        programarSiguientePow();
+
 
         // Generar la primera vida
         programarSiguienteVida();
@@ -262,6 +284,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         }
     }
 
+
     private void programarSiguienteMoneda() {
         if (!juegoPausado) {
             double delay = 1500.0 + (random.nextDouble() * 2000.0);
@@ -270,18 +293,18 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     }
 
 
-
     public void render(Canvas canvas) {
         if (canvas != null) {
-            Paint paint = new Paint();
-            paint.setStyle(Paint.Style.STROKE);
-            float offsetY=0;
-            float offsetX=0;
+            float offsetX = 0, offsetY = 0;
             if(shakeIntensity > 0) {
-                 offsetX = (float) (Math.random() * shakeIntensity * 2 - shakeIntensity);
-                 offsetY = (float) (Math.random() * shakeIntensity * 2 - shakeIntensity);
+                offsetX = (float) (Math.random() * shakeIntensity * 2 - shakeIntensity);
+                offsetY = (float) (Math.random() * shakeIntensity * 2 - shakeIntensity);
                 canvas.translate(offsetX, offsetY);
             }
+            Paint paint = new Paint();
+            paint.setStyle(Paint.Style.STROKE);
+
+
 
 
 
@@ -324,10 +347,13 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
                 canvas.drawBitmap(heart, 50 +heart.getWidth()*i, 50, null);
             }
 
+            for(int i = 0; i < pows.size(); i++) {
+                pows.get(i).render(canvas, paint);
+            }
+            // Revertir efecto shake
             if(shakeIntensity > 0) {
                 canvas.translate(-offsetX, -offsetY);
             }
-            pow.render(canvas, paint);
 
             //Pintamos los puntos
             paint.setTextSize(60);
@@ -336,30 +362,21 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         }
     }
 
-    public void activarEfectoPow() {
-        efectoPowActivo = true;
+    private void activarEfectoPow() {
         tiempoEfectoPow = System.currentTimeMillis();
         shakeIntensity = 40f;
 
-        // Hacer explotar todos los enemigos
-        for (Enemigo enemigo : enemigos) {
+        // Eliminar enemigos
+        for(Enemigo enemigo : enemigos) {
             explosiones.add(new Explosion(
                     this,
                     BitmapFactory.decodeResource(getResources(), R.drawable.explosion),
                     enemigo.posX,
                     enemigo.posY
             ));
-
-            // Sonido de explosión aleatorio
-            int sonidoExplosion = explosionesSonidos[random.nextInt(explosionesSonidos.length)];
-            soundPool.play(sonidoExplosion, 1, 1, 0, 0, 1);
+            soundPool.play(explosionesSonidos[random.nextInt(explosionesSonidos.length)], 1, 1, 0, 0, 1);
         }
-
-        enemigos.clear(); // Limpiar la lista después de crear las explosiones
-
-        // Sonido del POW
-        soundPool.play(healSoundId, 1, 1, 0, 0, 1);
-
+        enemigos.clear();
     }
 
     public Rect getJugadorHitbox() {
@@ -370,17 +387,6 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         if (juegoPausado) {
             return; // No actualizar nada si el juego está pausado
         }
-        if (!efectoPowActivo) {
-            // Solo generar un nuevo POW si no hay uno activo.
-            if (!pow.isActivo()) {
-                pow.generar();
-            }
-            if (pow.isActivo()) {
-                pow.update();
-            }
-        }
-
-
         frameCount++;
         //MOVIMIENTO MAPA
         posMapaY += velMapa;
@@ -388,12 +394,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             posMapaY = -mapHeight + maxY;
         }
         jugador.update();
-        if (efectoPowActivo && System.currentTimeMillis() - tiempoEfectoPow < 1000) {
-            shakeIntensity = 20 - (System.currentTimeMillis() - tiempoEfectoPow) / 50f;
-        } else {
-            efectoPowActivo = false;
-            shakeIntensity = 0;
-        }
+
         //Actualizamos los enemigos
         for(int i=0;i<enemigos.size();i++){ //Se usa for normal y no foreach para evitar ConcurrentModificationException
             Enemigo enemigo=enemigos.get(i);
@@ -445,11 +446,39 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
                 vidas.remove(i); //Eliminar la vida si sale de la pantalla
             }
         }
+
+
         //Cada 5 frames, si el jugador esta activo
         if(jugador.activo && frameCount%10==0){
             puntosPartida+=INCREMENTO_PUNTOS; //Incrementamos los puntos
         }
 
+        // Actualizar Pows
+        for(int i = 0; i < pows.size(); i++) {
+            Pow pow = pows.get(i);
+            pow.update();
+
+            if(pow.isActivo() && pow.getHitbox().intersect(jugador.getHitbox())) {
+                activarEfectoPow();
+
+                pows.remove(i);
+                i--;
+            }
+            else if(!pow.isActivo()) {
+                pows.remove(i);
+                i--;
+            }
+        }
+        // Efecto shake
+        if (shakeIntensity > 0) {
+            long tiempoActual = System.currentTimeMillis();
+            float progreso = (tiempoActual - tiempoEfectoPow) / 1000f;
+            shakeIntensity = 40 * (1 - progreso);
+
+            if (progreso >= 1) {
+                shakeIntensity = 0;
+            }
+        }
 
         //Si el jugador se ha quedado sin vidas, pierde
         if(jugador.vidas<=0 && jugador.activo){

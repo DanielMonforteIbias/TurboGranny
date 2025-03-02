@@ -4,7 +4,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import java.util.Random;
 
 public class Pow {
     private final Juego juego;
@@ -13,60 +12,38 @@ public class Pow {
     private int fotogramaActual = 0;
     private final int anchoFotograma;
     private final int altoFotograma;
-    public float posX, posY;
-    private boolean activo = false;
-    private final Random random = new Random();
-    private long tiempoUltimaAparicion;
-    private static final long MIN_INTERVALO = 40000; // 40 segundos
-    private static final long MAX_INTERVALO = 60000; // 60 segundos
-    private long intervaloActual = MIN_INTERVALO;
-    private long tiempoPausaAcumulado = 0;
+    private float posX, posY;
+    private final float velocidad = 35f;
+    private boolean activa = true;
 
-    // Constructor
-    public Pow(Juego juego, Bitmap spriteSheet) {
+    public Pow(Juego juego, Bitmap spriteSheet, float x, float y) {
         this.juego = juego;
         this.spriteSheet = spriteSheet;
         this.anchoFotograma = spriteSheet.getWidth() / totalFotogramas;
         this.altoFotograma = spriteSheet.getHeight();
+        this.posX = x;
+        this.posY = y;
     }
-
-    public void generar() {
-        if (activo) {
-            return;
-        }
-        if (System.currentTimeMillis() - tiempoUltimaAparicion > intervaloActual) {
-            posX = random.nextInt(juego.maxX - anchoFotograma);
-            posY = -altoFotograma;
-            activo = true;
-            tiempoUltimaAparicion = System.currentTimeMillis();
-            intervaloActual = MIN_INTERVALO + (long) (random.nextFloat() * (MAX_INTERVALO - MIN_INTERVALO));
-        }
-    }
-
-    public void adjustTime(long pauseDuration) {
-        tiempoUltimaAparicion += pauseDuration;
-    }
-
-    public boolean isActivo() {
-        return activo;
-    }
-
 
     public void update() {
-        if (activo && !juego.isJuegoPausado()) {
-            posY += 15;
-            if (juego.frameCount % 5 == 0) {
-                fotogramaActual = (fotogramaActual + 1) % totalFotogramas;
-            }
-            if (getHitbox().intersect(juego.getJugadorHitbox())) {
-                activo = false;
-                juego.activarEfectoPow();
-            }
+        if(juego.isJuegoPausado()) return;
+
+        // Movimiento
+        posY += velocidad;
+
+        // Animación
+        if(juego.frameCount % 5 == 0) {
+            fotogramaActual = (fotogramaActual + 1) % totalFotogramas;
+        }
+
+        // Desactivar si sale de pantalla
+        if(posY > juego.maxY) {
+            activa = false;
         }
     }
 
     public void render(Canvas canvas, Paint paint) {
-        if (activo) {
+        if(activa) {
             Rect origen = new Rect(
                     fotogramaActual * anchoFotograma,
                     0,
@@ -75,10 +52,10 @@ public class Pow {
             );
 
             Rect destino = new Rect(
-                    (int) posX,
-                    (int) posY,
-                    (int) (posX + anchoFotograma),
-                    (int) (posY + altoFotograma)
+                    (int)posX,
+                    (int)posY,
+                    (int)(posX + anchoFotograma),
+                    (int)(posY + altoFotograma)
             );
 
             canvas.drawBitmap(spriteSheet, origen, destino, paint);
@@ -87,10 +64,14 @@ public class Pow {
 
     public Rect getHitbox() {
         return new Rect(
-                (int) posX,
-                (int) posY,
-                (int) (posX + anchoFotograma),
-                (int) (posY + altoFotograma)
+                (int)posX,
+                (int)posY,
+                (int)(posX + anchoFotograma),
+                (int)(posY + altoFotograma)
         );
+    }
+
+    public boolean isActivo() {
+        return activa;
     }
 }
