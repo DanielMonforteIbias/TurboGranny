@@ -20,6 +20,7 @@ public class Pow {
     private static final long MIN_INTERVALO = 40000; // 40 segundos
     private static final long MAX_INTERVALO = 60000; // 60 segundos
     private long intervaloActual = MIN_INTERVALO;
+    private long tiempoPausaAcumulado = 0;
 
     // Constructor
     public Pow(Juego juego, Bitmap spriteSheet) {
@@ -30,6 +31,9 @@ public class Pow {
     }
 
     public void generar() {
+        if (activo) {
+            return;
+        }
         if (System.currentTimeMillis() - tiempoUltimaAparicion > intervaloActual) {
             posX = random.nextInt(juego.maxX - anchoFotograma);
             posY = -altoFotograma;
@@ -39,17 +43,21 @@ public class Pow {
         }
     }
 
+    public void adjustTime(long pauseDuration) {
+        tiempoUltimaAparicion += pauseDuration;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
 
     public void update() {
-        if (activo) {
-            posY += 15; // Velocidad de caída
-
-            // Animación
+        if (activo && !juego.isJuegoPausado()) {
+            posY += 15;
             if (juego.frameCount % 5 == 0) {
                 fotogramaActual = (fotogramaActual + 1) % totalFotogramas;
             }
-
-            // Verificar colisión con jugador (CORRECCIÓN PRINCIPAL)
             if (getHitbox().intersect(juego.getJugadorHitbox())) {
                 activo = false;
                 juego.activarEfectoPow();

@@ -3,6 +3,8 @@ package edu.pmdm.turbogranny;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -63,6 +65,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             generacionEnemigos();
         }
     };
+    private long pauseStartTime; // Para rastrear cuándo comienza la pausa
+
 
     //EXPLOSIONES
     private ArrayList<Explosion> explosiones=new ArrayList<Explosion>();
@@ -118,6 +122,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
 
     public void pausarJuego() {
         juegoPausado = true;
+        pauseStartTime = System.currentTimeMillis(); // Registrar inicio de la pausa
+
         if (bucleJuego != null) {
             bucleJuego.fin(); // Detenemos el bucle del juego
         }
@@ -127,10 +133,15 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         handler.removeCallbacks(generarEnemigo); // Detenemos la generación de enemigos
         manejadorMonedas.removeCallbacks(generarMoneda); // Detener la generación de monedas
         manejadorVidas.removeCallbacks(generarVida); //Detenemos la generacion de vidas
+
     }
 
     public void reanudarJuego() {
         juegoPausado = false;
+        long pauseDuration = System.currentTimeMillis() - pauseStartTime;
+        if (!pow.isActivo()) {
+            pow.adjustTime(pauseDuration);
+        }
         if (bucleJuego == null || !bucleJuego.JuegoEnEjecucion) {
             bucleJuego = new BucleJuego(getHolder(), this);
             bucleJuego.start(); // Reanudar el bucle del juego
@@ -141,6 +152,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         generacionEnemigos(); // Reanudar la generación de enemigos
         programarSiguienteMoneda(); // Reanudar la generación de monedas
         programarSiguienteVida(); //Reanudar la generacion de vidas
+
     }
 
     @Override
@@ -173,8 +185,11 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         // Cargar el sprite del corazón
         heartSpritesheet = BitmapFactory.decodeResource(getResources(), R.drawable.redheartspritesheet);
 
-        powSpriteSheet = BitmapFactory.decodeResource(getResources(), R.drawable.pow);
-        pow = new Pow(this, powSpriteSheet);
+        // Solo creamos el POW si aún no existe
+        if (pow == null) {
+            powSpriteSheet = BitmapFactory.decodeResource(getResources(), R.drawable.pow);
+            pow = new Pow(this, powSpriteSheet);
+        }
 
         // Generar la primera vida
         programarSiguienteVida();
@@ -356,8 +371,13 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             return; // No actualizar nada si el juego está pausado
         }
         if (!efectoPowActivo) {
-            pow.generar();
-            pow.update();
+            // Solo generar un nuevo POW si no hay uno activo.
+            if (!pow.isActivo()) {
+                pow.generar();
+            }
+            if (pow.isActivo()) {
+                pow.update();
+            }
         }
 
 
@@ -443,16 +463,40 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    bucleJuego.fin(); //Paramos el bucle del juego
-                    actualizarMonedasGanadas();
-                    actualizarUltimaPuntuacion();
-                    context.setResult(Activity.RESULT_OK);
-                    context.finish();
+                    new AlertDialog.Builder(context)
+                            .setTitle("¡Game Over!")
+                            .setMessage("¡Has perdido!")
+                            .setPositiveButton("Jugar de nuevo", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    // Reiniciar la actividad para jugar de nuevo
+                                    context.recreate();
+                                }
+                            })
+                            .setNegativeButton("Salir", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    bucleJuego.fin(); // Detenemos el bucle del juego
+                                    actualizarMonedasGanadas();
+                                    actualizarUltimaPuntuacion();
+                                    context.setResult(Activity.RESULT_OK);
+                                    context.finish();
+                                }
+                            })
+                            .setCancelable(false)
+                            .show();
+
                 }
             }, 1500); //Se cerrara tras 1 segundo y medio
 
         }
     }
+    public boolean isJuegoPausado() {
+        return juegoPausado;
+    }
+
 
     private void playSound(int soundId){
         soundPool.play(soundId,1,1,0,0,1);
