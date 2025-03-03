@@ -45,7 +45,7 @@ public class ActividadJuego extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (juegoPausado) {
+        if (juegoPausado && j.partidaActiva) {
             mostrarDialogoReanudar();
         }
     }

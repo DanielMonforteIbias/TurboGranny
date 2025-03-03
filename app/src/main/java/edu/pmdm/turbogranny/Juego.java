@@ -15,10 +15,13 @@ import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Handler;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,11 +43,11 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     private float velMapa = 80f;
     private int posMapaX = 0, posMapaY = 0;
     public int frameCount = 0;
-    private static final int textoInicialX = 50;
 
     //JUGADOR
     private Jugador jugador;
     public int carId;
+    public boolean partidaActiva=true; //Para controlar cuando se esta jugando y cuando se esta en el menu de fin
 
     //SONIDOS
     private SoundPool soundPool;
@@ -61,7 +64,12 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         @Override
         public void run() {
             int imagenId=enemigosImagenes[new Random().nextInt(enemigosImagenes.length)];
-            enemigos.add(new Enemigo(Juego.this,BitmapFactory.decodeResource(getResources(),imagenId)));
+            Enemigo enemigoNuevo=new Enemigo(Juego.this,BitmapFactory.decodeResource(getResources(),imagenId));
+            boolean generable=true;
+            for(int i=0;i<enemigos.size();i++){
+                if(enemigos.get(i).getHitbox().intersect(enemigoNuevo.getHitbox()))generable=false;
+            }
+            if(generable)enemigos.add(enemigoNuevo);
             generacionEnemigos();
         }
     };
@@ -104,6 +112,8 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
     //PUNTOS
     private long puntosPartida=0;
     private final int INCREMENTO_PUNTOS=100;
+
+    private int choquesPartida=0;
 
     //POW
     private ArrayList<Pow> pows = new ArrayList<>();
@@ -163,19 +173,19 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
 
     public void reanudarJuego() {
         juegoPausado = false;
-
-        if (bucleJuego == null || !bucleJuego.JuegoEnEjecucion) {
-            bucleJuego = new BucleJuego(getHolder(), this);
-            bucleJuego.start(); // Reanudar el bucle del juego
+        if(partidaActiva){ //Reanudamos solo si el jugador aun no ha perdido, para que no se reanude si estamos en el dialogo de fin
+            if (bucleJuego == null || !bucleJuego.JuegoEnEjecucion) {
+                bucleJuego = new BucleJuego(getHolder(), this);
+                bucleJuego.start(); // Reanudar el bucle del juego
+            }
+            if (soundPool != null) {
+                soundPool.autoResume(); // Reanudar todos los sonidos
+            }
+            generacionEnemigos(); // Reanudar la generación de enemigos
+            programarSiguienteMoneda(); // Reanudar la generación de monedas
+            programarSiguienteVida(); //Reanudar la generacion de vidas
+            programarSiguientePow();
         }
-        if (soundPool != null) {
-            soundPool.autoResume(); // Reanudar todos los sonidos
-        }
-        generacionEnemigos(); // Reanudar la generación de enemigos
-        programarSiguienteMoneda(); // Reanudar la generación de monedas
-        programarSiguienteVida(); //Reanudar la generacion de vidas
-        programarSiguientePow();
-
     }
 
     @Override
@@ -303,13 +313,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             }
             Paint paint = new Paint();
             paint.setStyle(Paint.Style.STROKE);
-
-
-
-
-
-
-            canvas.drawColor(Color.RED);
+            canvas.drawColor(context.getResources().getColor(R.color.pavement));
             canvas.drawBitmap(mapa, posMapaX, posMapaY, null);
             //Fuente de la letra
             Typeface typeface = ResourcesCompat.getFont(context, R.font.joystix_monospace);
@@ -320,7 +324,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             paint.setColor(Color.WHITE);
             /*Rect textBounds = new Rect();
             paint.getTextBounds("Frames ejecutados", 0, 1, textBounds);
-            canvas.drawText("Frames ejecutados: " + frameCount, textoInicialX, maxY- textBounds.height(), paint);*/
+            canvas.drawText("Frames ejecutados: " + frameCount, 50, maxY- textBounds.height(), paint);*/
 
             jugador.render(canvas,paint); //Pintamos el jugador
 
@@ -341,18 +345,18 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
                 vidas.get(i).render(canvas, paint);
             }
 
-            //La interfaz se pinta lo ultimo para que esté por encima de lo demas
-            //Pintamos las vidas
-            for (int i = 0; i < jugador.vidas; i++) {
-                canvas.drawBitmap(heart, 50 +heart.getWidth()*i, 50, null);
-            }
-
             for(int i = 0; i < pows.size(); i++) {
                 pows.get(i).render(canvas, paint);
             }
             // Revertir efecto shake
             if(shakeIntensity > 0) {
                 canvas.translate(-offsetX, -offsetY);
+            }
+
+            //La interfaz se pinta lo ultimo para que esté por encima de lo demas
+            //Pintamos las vidas del jugador
+            for (int i = 0; i < jugador.vidas; i++) {
+                canvas.drawBitmap(heart, 50 +heart.getWidth()*i, 50, null);
             }
 
             //Pintamos los puntos
@@ -366,21 +370,12 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         tiempoEfectoPow = System.currentTimeMillis();
         shakeIntensity = 40f;
 
-        // Eliminar enemigos
-        for(Enemigo enemigo : enemigos) {
-            explosiones.add(new Explosion(
-                    this,
-                    BitmapFactory.decodeResource(getResources(), R.drawable.explosion),
-                    enemigo.posX,
-                    enemigo.posY
-            ));
-            soundPool.play(explosionesSonidos[random.nextInt(explosionesSonidos.length)], 1, 1, 0, 0, 1);
+        for(int i=0;i<enemigos.size();i++){
+            Enemigo enemigo=enemigos.get(i);
+            explosiones.add(new Explosion(this,BitmapFactory.decodeResource(getResources(),R.drawable.explosion),enemigo.posX,enemigo.posY));
+            enemigos.remove(i);
+            i--;
         }
-        enemigos.clear();
-    }
-
-    public Rect getJugadorHitbox() {
-        return jugador.getHitbox();
     }
 
     public void update() {
@@ -401,6 +396,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             enemigo.update(enemigos);
             if(enemigo.getHitbox().intersect(jugador.getHitbox())){
                 jugador.vidas--; //Restamos una vida al jugador
+                choquesPartida++;
                 puntosPartida+=enemigo.PUNTOS;
                 explosiones.add(new Explosion(this,BitmapFactory.decodeResource(getResources(),R.drawable.explosion),enemigo.posX,enemigo.posY));
                 enemigos.remove(i);
@@ -448,7 +444,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         }
 
 
-        //Cada 5 frames, si el jugador esta activo
+        //Cada 10 frames, si el jugador esta activo
         if(jugador.activo && frameCount%10==0){
             puntosPartida+=INCREMENTO_PUNTOS; //Incrementamos los puntos
         }
@@ -460,7 +456,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
 
             if(pow.isActivo() && pow.getHitbox().intersect(jugador.getHitbox())) {
                 activarEfectoPow();
-
+                puntosPartida+=pow.PUNTOS;
                 pows.remove(i);
                 i--;
             }
@@ -492,33 +488,35 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    new AlertDialog.Builder(context)
-                            .setTitle("¡Game Over!")
-                            .setMessage("¡Has perdido!")
-                            .setPositiveButton("Jugar de nuevo", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    // Reiniciar la actividad para jugar de nuevo
-                                    context.recreate();
-                                }
-                            })
-                            .setNegativeButton("Salir", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    bucleJuego.fin(); // Detenemos el bucle del juego
-                                    actualizarMonedasGanadas();
-                                    actualizarUltimaPuntuacion();
-                                    context.setResult(Activity.RESULT_OK);
-                                    context.finish();
-                                }
-                            })
-                            .setCancelable(false)
-                            .show();
-
+                    partidaActiva=false;
+                    bucleJuego.fin(); // Detenemos el bucle del juego
+                    LayoutInflater inflater = context.getLayoutInflater();
+                    View dialogView = inflater.inflate(R.layout.dialog_game_end, null);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    builder.setView(dialogView);
+                    AlertDialog dialog = builder.create();
+                    dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+                    Button btnTerminar = dialogView.findViewById(R.id.btnTerminar);
+                    btnTerminar.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dialog.dismiss();
+                            actualizarMonedasGanadas();
+                            actualizarUltimaPuntuacion();
+                            context.setResult(Activity.RESULT_OK);
+                            context.finish();
+                        }
+                    });
+                    TextView txtMonedas=dialogView.findViewById(R.id.dialogTxtCoinsResult);
+                    txtMonedas.setText(String.valueOf(monedasPartida));
+                    TextView txtPuntos=dialogView.findViewById(R.id.dialogTxtPointsResult);
+                    txtPuntos.setText(String.valueOf(puntosPartida));
+                    TextView txtChoques=dialogView.findViewById(R.id.dialogTxtCrashesResult);
+                    txtChoques.setText(String.valueOf(choquesPartida));
+                    dialog.setCancelable(false);
+                    dialog.show();
                 }
-            }, 1500); //Se cerrara tras 1 segundo y medio
+            }, 1500); //Se muestra el dialogo tras 1 segundo y medio
 
         }
     }

@@ -144,6 +144,21 @@ public class MainActivity extends AppCompatActivity {
                 playSound(coinSound);
             }
         });
+        binding.imgBtnShop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setMessage("Coming soon!")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                AlertDialog dialog = builder.create();
+                dialog.show();
+            }
+        });
         screenWidth = getResources().getDisplayMetrics().widthPixels;
         binding.imgCar.getLocationOnScreen(carLocation);
         carX = carLocation[0];
@@ -202,27 +217,6 @@ public class MainActivity extends AppCompatActivity {
         okaySound = soundPoolMain.load(this, R.raw.okay, 1);
         coinSound = soundPoolMain.load(this, R.raw.coin, 1);
         carStartSound=soundPoolMain.load(this,R.raw.carstart,1);
-        binding.imgBtnShop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setMessage("Comming soon!")
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
-                AlertDialog dialog = builder.create();
-                dialog.show();
-            }
-        });
-
-        screenWidth=getResources().getDisplayMetrics().widthPixels;
-        binding.imgCar.getLocationOnScreen(carLocation);
-        carX = carLocation[0];
-        animarBotones();
-        animarMoneda();
     }
 
     private void changeCar(int direccion) { //Direccion es -1 a la izquierda, 1 a la derecha
