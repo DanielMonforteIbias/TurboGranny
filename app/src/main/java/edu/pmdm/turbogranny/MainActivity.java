@@ -13,6 +13,7 @@ import android.graphics.drawable.AnimationDrawable;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,7 +46,8 @@ public class MainActivity extends AppCompatActivity {
     private int[] cars = {R.drawable.car1, R.drawable.car2, R.drawable.car3, R.drawable.car4, R.drawable.car5,R.drawable.car6,R.drawable.car7}; //Necesario para mostrar y animar solo la imagen de los coches quietos
     private int[] carsSpriteSheets = {R.drawable.car1spritesheet, R.drawable.car2spritesheet, R.drawable.car3spritesheet, R.drawable.car4spritesheet, R.drawable.car5spritesheet,R.drawable.car6spritesheet,R.drawable.car7spritesheet}; //Necesario para pasar el spritesheet correcto
     private int[] carLocation = new int[2];
-    private int carX, screenWidth;
+    private int[] txtMessageLocation=new int[2];
+    private int carX, screenWidth, txtMessageX;
     private boolean changingCar = false, activeGame = false; //para bloquear otro cambio mientras se cambia
     private String nickname = "USER";
     private ArrayList<Puntuacion> maximasPuntuaciones = new ArrayList<>();
@@ -55,6 +57,17 @@ public class MainActivity extends AppCompatActivity {
     private SoundPool soundPoolMain;
     int changeCarSound, buySound, okaySound, coinSound, carStartSound;
 
+    private String[] consejos;
+    private final int delayConsejos=5000;
+    private Handler handlerConsejos=new Handler();
+    private Runnable runnableConsejos=new Runnable() {
+        @Override
+        public void run() {
+            changeMessage();
+            handlerConsejos.postDelayed(this, delayConsejos);
+        }
+    };;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         preferencias = getSharedPreferences("DatosJuego", MODE_PRIVATE);
         editor = preferencias.edit();
-
+        consejos= getResources().getStringArray(R.array.mensajes);
         cargarSoundPoolMain();
         int totalMonedas = preferencias.getInt("monedas", 0); // Obtener y mostrar el total de monedas guardado en SharedPreferences
         nickname = preferencias.getString("nickname", "USER"); //Obtener el nickname de preferencias
@@ -107,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
         binding.imgBtnSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dialogoNickname();
+                dialogoSettings();
             }
         });
         binding.txtNickname.setOnClickListener(new View.OnClickListener() {
@@ -162,8 +175,43 @@ public class MainActivity extends AppCompatActivity {
         screenWidth = getResources().getDisplayMetrics().widthPixels;
         binding.imgCar.getLocationOnScreen(carLocation);
         carX = carLocation[0];
+        binding.txtMensaje.getLocationOnScreen(txtMessageLocation);
+        txtMessageX = txtMessageLocation[0];
         animarBotones();
         animarMoneda();
+    }
+
+    private void dialogoSettings(){
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_settings, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+        Button btnTutorial = dialogView.findViewById(R.id.btnTutorial);
+        Button btnNickname = dialogView.findViewById(R.id.btnChangeNickname);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+        btnTutorial.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialogoTutorial();
+                dialog.dismiss();
+            }
+        });
+        btnNickname.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialogoNickname();
+                dialog.dismiss();
+            }
+        });
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
     }
 
     private void dialogoNickname() {
@@ -192,6 +240,23 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+
+    private void dialogoTutorial() {
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_tutorial, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -246,6 +311,31 @@ public class MainActivity extends AppCompatActivity {
         carAnimator.start();
     }
 
+    private void changeMessage() {
+        AnimatorSet messageAnimator = new AnimatorSet();
+        float salidaX = screenWidth;
+        float entradaX = -screenWidth;
+        ObjectAnimator trasladarSalida = ObjectAnimator.ofFloat(binding.txtMensaje, "translationX", txtMessageX, salidaX);
+        trasladarSalida.setDuration(400);
+        trasladarSalida.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                String nuevoMensaje="";
+                //Controlamos que el nuevo mensaje no se repita
+                do{
+                    nuevoMensaje=obtenerConsejoAleatorio();
+                }while(nuevoMensaje.equals(binding.txtMensaje.getText()));
+                binding.txtMensaje.setText(nuevoMensaje);
+                binding.txtMensaje.setX(entradaX);
+                ObjectAnimator trasladarEntrada = ObjectAnimator.ofFloat(binding.txtMensaje, "translationX", entradaX, txtMessageX);
+                trasladarEntrada.setDuration(400);
+                trasladarEntrada.start();
+            }
+        });
+        messageAnimator.play(trasladarSalida);
+        messageAnimator.start();
+    }
+
     private void animarBotones() {
         AnimatorSet btnAnimator = new AnimatorSet();
         ObjectAnimator colorBtn = ObjectAnimator.ofArgb(binding.startButton, "backgroundColor", ContextCompat.getColor(this, R.color.car1red), ContextCompat.getColor(this, R.color.car1blue));
@@ -285,20 +375,6 @@ public class MainActivity extends AppCompatActivity {
         soundPoolMain.play(soundId, 0.5f, 0.5f, 0, 0, 1);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        int totalMonedas = preferencias.getInt("monedas", 0);
-        binding.txtCoins.setText(String.valueOf(totalMonedas));
-        long ultimaPuntuacion = preferencias.getLong("ultimaPuntuacion", 0); //Recuperamos la ultima puntuacion
-        if (ultimaPuntuacion > 0) {
-            guardarPuntuacion(ultimaPuntuacion);
-            editor.putLong("ultimaPuntuacion", 0); //Quitamos la ultima puntuacion para que no se haga varias veces al cerrar y abrir o volver a la app. La ultima puntuacion solo cambiara al terminar una partida, pasando por aqui y vaciandose de nuevo
-            editor.apply();
-        }
-        activeGame = false;
-    }
-
     private void guardarPuntuacion(long nuevaPuntuacion) {
         Puntuacion nueva = new Puntuacion(nickname, nuevaPuntuacion);
         maximasPuntuaciones.add(nueva);
@@ -322,5 +398,35 @@ public class MainActivity extends AppCompatActivity {
         String jsonPuntuaciones = new Gson().toJson(maximasPuntuaciones);
         editor.putString("maximasPuntuaciones", jsonPuntuaciones);
         editor.apply();
+    }
+
+    private void iniciarCambioDeConsejos() {
+        handlerConsejos.postDelayed(runnableConsejos,delayConsejos);
+    }
+
+    private String obtenerConsejoAleatorio() {
+        int index = new java.util.Random().nextInt(consejos.length);
+        return consejos[index];
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        iniciarCambioDeConsejos();
+        int totalMonedas = preferencias.getInt("monedas", 0);
+        binding.txtCoins.setText(String.valueOf(totalMonedas));
+        long ultimaPuntuacion = preferencias.getLong("ultimaPuntuacion", 0); //Recuperamos la ultima puntuacion
+        if (ultimaPuntuacion > 0) {
+            guardarPuntuacion(ultimaPuntuacion);
+            editor.putLong("ultimaPuntuacion", 0); //Quitamos la ultima puntuacion para que no se haga varias veces al cerrar y abrir o volver a la app. La ultima puntuacion solo cambiara al terminar una partida, pasando por aqui y vaciandose de nuevo
+            editor.apply();
+        }
+        activeGame = false;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        handlerConsejos.removeCallbacks(runnableConsejos);
     }
 }

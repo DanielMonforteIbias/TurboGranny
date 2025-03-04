@@ -129,13 +129,56 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.245" />
 
+    <LinearLayout
+        android:id="@+id/carSelection"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/txtMensaje"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/logo"
+        app:layout_constraintVertical_bias="0.0">
+
+        <ImageButton
+            android:id="@+id/imgBtnLeftArrow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_weight="0"
+            android:background="@android:color/transparent"
+            app:srcCompat="@drawable/left_arrow" />
+
+        <ImageView
+            android:id="@+id/imgCar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:translationZ="-1dp"
+            tools:srcCompat="@drawable/car1" /><!-- -1dp en z para que se pinte por debajo de las flechas-->
+
+        <ImageButton
+            android:id="@+id/imgBtnRightArrow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="20dp"
+            android:layout_weight="0"
+            android:background="@android:color/transparent"
+            app:srcCompat="@drawable/right_arrow" />
+
+    </LinearLayout>
+
     <TextView
-        android:id="@+id/welcome_text"
+        android:id="@+id/txtMensaje"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="13dp"
         android:fontFamily="@font/joystix_monospace"
         android:shadowColor="@color/black"
+        android:gravity="center"
+        android:textAlignment="center"
         android:shadowDx="8"
         android:shadowDy="8"
         android:shadowRadius="1"
@@ -171,49 +214,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.461"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/welcome_text"
+        app:layout_constraintTop_toBottomOf="@+id/txtMensaje"
         app:layout_constraintVertical_bias="0.579" />
-
-    <LinearLayout
-        android:id="@+id/carSelection"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:gravity="center"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/welcome_text"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/logo"
-        app:layout_constraintVertical_bias="0.0">
-
-        <ImageButton
-            android:id="@+id/imgBtnLeftArrow"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_weight="0"
-            android:background="@android:color/transparent"
-            app:srcCompat="@drawable/left_arrow" />
-
-        <ImageView
-            android:id="@+id/imgCar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:translationZ="-1dp"
-            tools:srcCompat="@drawable/car1" /><!-- -1dp en z para que se pinte por debajo de las flechas-->
-
-        <ImageButton
-            android:id="@+id/imgBtnRightArrow"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="20dp"
-            android:layout_weight="0"
-            android:background="@android:color/transparent"
-            app:srcCompat="@drawable/right_arrow" />
-
-    </LinearLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

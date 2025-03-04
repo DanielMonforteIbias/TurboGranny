@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/black">
+
+    <LinearLayout
+        android:id="@+id/layoutTutorial"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:id="@+id/layoutTituloTutorial"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tutorialTextTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/joystix_monospace"
+                android:gravity="center"
+                android:shadowColor="@color/black"
+                android:shadowDx="8"
+                android:shadowDy="8"
+                android:shadowRadius="5"
+                android:text="@string/bienvenido_a_turbo_granny"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="32dp" />
+
+            <ImageView
+                android:id="@+id/tutorialLogo"
+                android:layout_width="wrap_content"
+                android:layout_height="150dp"
+                android:src="@drawable/logo" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutInformacionTutorial"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tutorialText1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/joystix_monospace"
+                android:gravity="left"
+                android:shadowColor="@color/black"
+                android:shadowDx="8"
+                android:shadowDy="8"
+                android:shadowRadius="5"
+                android:text="@string/text_tutorial_1"
+                android:textAlignment="gravity"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+
+            <TextView
+                android:id="@+id/tutorialText2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/joystix_monospace"
+                android:gravity="left"
+                android:shadowColor="@color/black"
+                android:shadowDx="8"
+                android:shadowDy="8"
+                android:shadowRadius="5"
+                android:text="@string/text_tutorial_2"
+                android:textAlignment="gravity"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+
+            <ImageView
+                android:id="@+id/tutorialImage1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                app:srcCompat="@drawable/tutorial1" />
+
+            <TextView
+                android:id="@+id/tutorialText3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/joystix_monospace"
+                android:gravity="left"
+                android:shadowColor="@color/black"
+                android:shadowDx="8"
+                android:shadowDy="8"
+                android:shadowRadius="5"
+                android:text="@string/text_tutorial_3"
+                android:textAlignment="gravity"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+
+            <TextView
+                android:id="@+id/tutorialText4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/joystix_monospace"
+                android:gravity="left"
+                android:shadowColor="@color/black"
+                android:shadowDx="8"
+                android:shadowDy="8"
+                android:shadowRadius="5"
+                android:text="@string/text_tutorial_4"
+                android:textAlignment="gravity"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+
+            <GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="2"
+                android:padding="16dp"
+                android:rowCount="2">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:layout_margin="10dp"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_marginEnd="8dp"
+                        android:src="@drawable/enemy1" />
+
+                    <TextView
+                        android:id="@+id/tutorialEnemy"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/joystix_monospace"
+                        android:shadowColor="@color/black"
+                        android:shadowDx="8"
+                        android:shadowDy="8"
+                        android:shadowRadius="5"
+                        android:text="@string/enemigos"
+                        android:textColor="@color/white"
+                        android:textSize="14dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:layout_margin="10dp"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_marginEnd="8dp"
+                        android:src="@drawable/coin0" />
+
+                    <TextView
+                        android:id="@+id/tutorialCoin"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/joystix_monospace"
+                        android:shadowColor="@color/black"
+                        android:shadowDx="8"
+                        android:shadowDy="8"
+                        android:shadowRadius="5"
+                        android:text="@string/monedas"
+                        android:textColor="@color/white"
+                        android:textSize="14dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:layout_margin="10dp"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_marginEnd="8dp"
+                        android:src="@drawable/redheart" />
+
+                    <TextView
+                        android:id="@+id/tutorialHeart"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/joystix_monospace"
+                        android:shadowColor="@color/black"
+                        android:shadowDx="8"
+                        android:shadowDy="8"
+                        android:shadowRadius="5"
+                        android:text="@string/vidas"
+                        android:textColor="@color/white"
+                        android:textSize="14dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left"
+                    android:layout_margin="10dp"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_marginEnd="8dp"
+                        android:src="@drawable/pow0" />
+
+                    <TextView
+                        android:id="@+id/tutorialPow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/joystix_monospace"
+                        android:shadowColor="@color/black"
+                        android:shadowDx="8"
+                        android:shadowDy="8"
+                        android:shadowRadius="5"
+                        android:text="@string/pow"
+                        android:textColor="@color/white"
+                        android:textSize="14dp" />
+                </LinearLayout>
+
+            </GridLayout>
+
+            <TextView
+                android:id="@+id/tutorialTextChoques"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/joystix_monospace"
+                android:gravity="left"
+                android:shadowColor="@color/black"
+                android:shadowDx="8"
+                android:shadowDy="8"
+                android:shadowRadius="5"
+                android:text="@string/text_tutorial_choques"
+                android:textAlignment="gravity"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+
+            <TextView
+                android:id="@+id/tutorialTextVidas"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/joystix_monospace"
+                android:gravity="left"
+                android:shadowColor="@color/black"
+                android:shadowDx="8"
+                android:shadowDy="8"
+                android:shadowRadius="5"
+                android:text="@string/text_tutorial_vidas"
+                android:textAlignment="gravity"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+
+            <TextView
+                android:id="@+id/tutorialTextPow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/joystix_monospace"
+                android:gravity="left"
+                android:shadowColor="@color/black"
+                android:shadowDx="8"
+                android:shadowDy="8"
+                android:shadowRadius="5"
+                android:text="@string/text_tutorial_pow"
+                android:textAlignment="gravity"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutControlesTutorial"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tutorialTextControlsTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/joystix_monospace"
+                android:layout_gravity="center"
+                android:shadowColor="@color/black"
+                android:shadowDx="8"
+                android:shadowDy="8"
+                android:shadowRadius="5"
+                android:text="@string/controles"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="32dp"
+                android:layout_marginBottom="10dp"/>
+            <ImageView
+                android:id="@+id/tutorialControls"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/tutorial2"
+                android:layout_marginBottom="10dp"/>
+            <TextView
+                android:id="@+id/tutorialTextControls1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/joystix_monospace"
+                android:gravity="left"
+                android:shadowColor="@color/black"
+                android:shadowDx="8"
+                android:shadowDy="8"
+                android:shadowRadius="5"
+                android:text="@string/text_tutorial_controles"
+                android:textAlignment="gravity"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+            <TextView
+                android:id="@+id/tutorialTextControls2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/joystix_monospace"
+                android:gravity="left"
+                android:shadowColor="@color/black"
+                android:shadowDx="8"
+                android:shadowDy="8"
+                android:shadowRadius="5"
+                android:text="@string/text_tutorial_controles2"
+                android:textAlignment="gravity"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+            <TextView
+                android:id="@+id/tutorialTextControls3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/joystix_monospace"
+                android:gravity="left"
+                android:shadowColor="@color/black"
+                android:shadowDx="8"
+                android:shadowDy="8"
+                android:shadowRadius="5"
+                android:text="@string/text_tutorial_controles3"
+                android:textAlignment="gravity"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/layoutDifficultyTutorial"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tutorialTextDfficultyTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/joystix_monospace"
+                android:layout_gravity="center"
+                android:shadowColor="@color/black"
+                android:shadowDx="8"
+                android:shadowDy="8"
+                android:shadowRadius="5"
+                android:text="@string/dificultad"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="32dp"
+                android:layout_marginBottom="10dp"/>
+
+            <TextView
+                android:id="@+id/tutorialTextDifficulty1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/joystix_monospace"
+                android:gravity="left"
+                android:shadowColor="@color/black"
+                android:shadowDx="8"
+                android:shadowDy="8"
+                android:shadowRadius="5"
+                android:text="@string/text_tutorial_dificultad1"
+                android:textAlignment="gravity"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+            <TextView
+                android:id="@+id/tutorialTextDifficulty2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/joystix_monospace"
+                android:gravity="left"
+                android:shadowColor="@color/black"
+                android:shadowDx="8"
+                android:shadowDy="8"
+                android:shadowRadius="5"
+                android:text="@string/text_tutorial_dificultad2"
+                android:textAlignment="gravity"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+            <TextView
+                android:id="@+id/tutorialTextDifficulty3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/joystix_monospace"
+                android:gravity="left"
+                android:shadowColor="@color/black"
+                android:shadowDx="8"
+                android:shadowDy="8"
+                android:shadowRadius="5"
+                android:text="@string/text_tutorial_dificultad3"
+                android:textAlignment="gravity"
+                android:textColor="@color/white"
+                android:textSize="16dp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/car1red"
+            android:fontFamily="@font/joystix_monospace"
+            android:shadowColor="@color/black"
+            android:shadowDx="8"
+            android:shadowDy="8"
+            android:shadowRadius="5"
+            android:text="@string/terminar"
+            android:textColor="@color/white" />
+    </LinearLayout>
+</ScrollView>

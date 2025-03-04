@@ -33,7 +33,7 @@ public class BucleJuego extends Thread{
                 synchronized (surfaceHolder){
                     tiempoComienzo = System.currentTimeMillis();
                     framesASaltar=0;
-                    juego.update();
+                    if(juego.partidaActiva)juego.update(); //Actualizamos solo si la partida esta activa
                     juego.render(canvas);
                     tiempoDiferencia= System.currentTimeMillis() - tiempoComienzo;
                     tiempoDormir = (int) (TIEMPO_FRAME-tiempoDiferencia);

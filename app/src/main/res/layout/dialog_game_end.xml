@@ -5,13 +5,13 @@
     android:background="@color/black"
     android:gravity="center|top"
     android:orientation="vertical"
-    android:padding="20dp">
+    android:padding="10dp">
 
     <TextView
         android:id="@+id/dialogTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="20dp"
         android:fontFamily="@font/joystix_monospace"
         android:gravity="center"
         android:text="@string/game_over"
@@ -43,7 +43,7 @@
                 android:gravity="center"
                 android:text="@string/resumen_monedas"
                 android:textColor="@color/white"
-                android:textSize="16sp" />
+                android:textSize="15sp" />
 
             <TextView
                 android:id="@+id/dialogTxtPoints"
@@ -54,7 +54,7 @@
                 android:gravity="center"
                 android:text="@string/resumen_puntos"
                 android:textColor="@color/white"
-                android:textSize="16sp" />
+                android:textSize="15sp" />
 
             <TextView
                 android:id="@+id/dialogTxtCrashes"
@@ -65,13 +65,24 @@
                 android:gravity="center"
                 android:text="@string/resumen_choques"
                 android:textColor="@color/white"
-                android:textSize="16sp" />
+                android:textSize="15sp" />
+            <TextView
+                android:id="@+id/dialogTxtLevel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/joystix_monospace"
+                android:gravity="center"
+                android:text="@string/resumen_nivel"
+                android:textColor="@color/white"
+                android:textSize="15sp" />
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/layoutResults"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:gravity="right|top"
             android:orientation="vertical">
 
@@ -84,7 +95,7 @@
                 android:gravity="center"
                 android:text="000"
                 android:textColor="@color/white"
-                android:textSize="16sp" />
+                android:textSize="15sp" />
 
             <TextView
                 android:id="@+id/dialogTxtPointsResult"
@@ -95,7 +106,7 @@
                 android:gravity="center"
                 android:text="000"
                 android:textColor="@color/white"
-                android:textSize="16sp" />
+                android:textSize="15sp" />
 
             <TextView
                 android:id="@+id/dialogTxtCrashesResult"
@@ -106,7 +117,18 @@
                 android:gravity="center"
                 android:text="000"
                 android:textColor="@color/white"
-                android:textSize="16sp" />
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/dialogTxtLevelResult"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/joystix_monospace"
+                android:gravity="center"
+                android:text="000"
+                android:textColor="@color/white"
+                android:textSize="15sp" />
         </LinearLayout>
     </LinearLayout>
 

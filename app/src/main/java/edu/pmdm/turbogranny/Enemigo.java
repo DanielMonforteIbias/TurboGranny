@@ -16,7 +16,7 @@ public class Enemigo {
     public int spriteHeight, spriteWidth;
     public float posX, posY;
     public float velX, velY;
-    private float minSpeed = 10f; // necesitamos una velocidad minima para no quedar atascados
+    private float minSpeed; // necesitamos una velocidad minima para no quedar atascados
     private boolean activo;
     public final int PUNTOS=-270;
     private MediaPlayer mediaPlayer;
@@ -26,9 +26,10 @@ public class Enemigo {
         this.sprite = sprite;
         this.spriteHeight = sprite.getHeight();
         this.spriteWidth = sprite.getWidth();
+        minSpeed=juego.velMinEnemigos;
         this.posX = new Random().nextInt(juego.maxX - spriteWidth);
         this.posY = -spriteHeight;
-        this.velY = (float)((Math.random()*20)+11);
+        this.velY = (float)((Math.random()*20)+minSpeed);
         this.activo=true;
         int claxonIndex=new Random().nextInt(juego.claxonSonidos.length);
         mediaPlayer = MediaPlayer.create(j.getContext(), juego.claxonSonidos[claxonIndex]);
