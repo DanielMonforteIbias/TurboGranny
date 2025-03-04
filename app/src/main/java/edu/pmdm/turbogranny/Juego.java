@@ -49,7 +49,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
 
     //SONIDOS
     private SoundPool soundPool;
-    private int engineSoundId, coinSoundId, healSoundId, accidentSoundId, levelUpSoundId; //Necesario guardar todos los ids para que el soundpool funcione
+    private int engineSoundId, coinSoundId, healSoundId, accidentSoundId, screamSoundId,levelUpSoundId; //Necesario guardar todos los ids para que el soundpool funcione
     private Bitmap heart;
 
     //ENEMIGOS
@@ -287,6 +287,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
         coinSoundId = soundPool.load(context, R.raw.coin, 1);
         healSoundId = soundPool.load(context, R.raw.heal, 1);
         accidentSoundId = soundPool.load(context, R.raw.carbreak, 1);
+        screamSoundId=soundPool.load(context,R.raw.scream,1);
         levelUpSoundId = soundPool.load(context, R.raw.levelup, 1);
         soundPool.setOnLoadCompleteListener((soundPool, sampleId, status) -> {
             if (status == 0) {
@@ -545,6 +546,7 @@ public class Juego extends SurfaceView implements SurfaceHolder.Callback, View.O
             jugador.activo = false; //Desactivamos el jugador
             soundPool.stop(engineSoundId); //Paramos el sonido de motor
             playSound(accidentSoundId);
+            playSound(screamSoundId);
             explosiones.add(new Explosion(this, BitmapFactory.decodeResource(getResources(), R.drawable.explosion), jugador.posX, jugador.posY));
             if (timerDificultad != null) {
                 timerDificultad.cancel();

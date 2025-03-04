@@ -16,15 +16,8 @@ public class ShopItem {
         this.precio = precio;
         this.comprado = comprado;
     }
-
-
-    public ShopItem(int imagenRes, String nombre, int precio, boolean comprado) {
-        this(imagenRes, imagenRes, nombre, precio, comprado);
-    }
-
-
-    public ShopItem(int imagenRes, String nombre, int precio) {
-        this(imagenRes, imagenRes, nombre, precio, false);
+    public ShopItem(int id,int imagenRes, String nombre, int precio) {
+        this(id,imagenRes, nombre, precio, false);
     }
 
     public int getId() {
@@ -47,7 +40,5 @@ public class ShopItem {
         this.comprado = comprado;
     }
 
-    public int getImagenRes() {
-        return imagenRes;
-    }
+    public int getImagenRes() {return imagenRes;}
 }

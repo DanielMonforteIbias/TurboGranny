@@ -45,9 +45,9 @@ import edu.pmdm.turbogranny.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
-    private int carIndex = 0;
-    private int[] cars = {R.drawable.car1, R.drawable.car2, R.drawable.car3, R.drawable.car4, R.drawable.car5,R.drawable.car6,R.drawable.car7}; //Necesario para mostrar y animar solo la imagen de los coches quietos
-    private int[] carsSpriteSheets = {R.drawable.car1spritesheet, R.drawable.car2spritesheet, R.drawable.car3spritesheet, R.drawable.car4spritesheet, R.drawable.car5spritesheet,R.drawable.car6spritesheet,R.drawable.car7spritesheet}; //Necesario para pasar el spritesheet correcto
+    public static int carIndex = 0;
+    private int[] cars = {R.drawable.car1, R.drawable.car2, R.drawable.car3, R.drawable.car4, R.drawable.car5,R.drawable.car6,R.drawable.car7,R.drawable.car8,R.drawable.car9,R.drawable.car10}; //Necesario para mostrar y animar solo la imagen de los coches quietos
+    private int[] carsSpriteSheets = {R.drawable.car1spritesheet, R.drawable.car2spritesheet, R.drawable.car3spritesheet, R.drawable.car4spritesheet, R.drawable.car5spritesheet,R.drawable.car6spritesheet,R.drawable.car7spritesheet,R.drawable.car8spritesheet,R.drawable.car9spritesheet,R.drawable.car10spritesheet}; //Necesario para pasar el spritesheet correcto
     private int[] carLocation = new int[2];
     private int[] txtMessageLocation=new int[2];
     private int carX, screenWidth, txtMessageX;
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences.Editor editor;
 
     private SoundPool soundPoolMain;
-    int changeCarSound, buySound, okaySound, coinSound, carStartSound;
+    int changeCarSound, buySound, okaySound, coinSound, carStartSound, errorSound, selectSound;
 
     private List<ShopItem> itemsTienda = new ArrayList<>();
     private TiendaAdapter adapter;
@@ -168,21 +168,11 @@ public class MainActivity extends AppCompatActivity {
                 playSound(coinSound);
             }
         });
-        binding.imgBtnShop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setMessage("Coming soon!")
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
-                AlertDialog dialog = builder.create();
-                dialog.show();
-            }
-        });
+        adapter = new TiendaAdapter(this, itemsTienda, this::manejarClicItem, monedasActuales);
+
+        binding.imgBtnShop.setOnClickListener(v -> mostrarDialogoTienda());
+        inicializarItemsTienda();
+
         screenWidth = getResources().getDisplayMetrics().widthPixels;
         binding.imgCar.getLocationOnScreen(carLocation);
         carX = carLocation[0];
@@ -190,97 +180,80 @@ public class MainActivity extends AppCompatActivity {
         txtMessageX = txtMessageLocation[0];
         animarBotones();
         animarMoneda();
-
-        adapter = new TiendaAdapter(this, itemsTienda, this::manejarClicItem, monedasActuales);
-
-
-        binding.imgBtnShop.setOnClickListener(v -> mostrarDialogoTienda());
-        inicializarItemsTienda();
+        System.out.println("A: "+preferencias.getBoolean("coche_0_comprado",false));
     }
 
     private void inicializarItemsTienda() {
         itemsTienda.clear();
-        itemsTienda.add(new ShopItem(R.drawable.car1, "Classic", 0, true));
-        itemsTienda.add(new ShopItem(R.drawable.car2, "Lightning", 50));
-        itemsTienda.add(new ShopItem(R.drawable.car3, "Fury", 100));
-        itemsTienda.add(new ShopItem(R.drawable.car4, "GrannyCar", 125));
-        itemsTienda.add(new ShopItem(R.drawable.car5, "Off-Road", 150));
-        itemsTienda.add(new ShopItem(R.drawable.car6, "GrannyCar", 200));
-        itemsTienda.add(new ShopItem(R.drawable.car7, "Vortex", 210));
+        itemsTienda.add(new ShopItem(0,R.drawable.car1, "Classic", 0, true));
+        itemsTienda.add(new ShopItem(1,R.drawable.car2, "Lightning", 50));
+        itemsTienda.add(new ShopItem(2,R.drawable.car3, "Fury", 100));
+        itemsTienda.add(new ShopItem(3,R.drawable.car4, "GrannyCar", 125));
+        itemsTienda.add(new ShopItem(4,R.drawable.car5, "Off-Road", 150));
+        itemsTienda.add(new ShopItem(5,R.drawable.car6, "Speedster", 200));
+        itemsTienda.add(new ShopItem(6,R.drawable.car7, "Vortex", 210));
+        itemsTienda.add(new ShopItem(7,R.drawable.car8, "Sandburst", 250));
+        itemsTienda.add(new ShopItem(8,R.drawable.car9, "SunnyDay", 250));
+        itemsTienda.add(new ShopItem(9,R.drawable.car10, "Carbono", 300));
 
-
-
-
-        // Asegurarnos de que el coche estándar figure como comprado en SharedPreferences
-        boolean standardComprado = preferencias.getBoolean("coche_" + R.drawable.car1 + "_comprado", false);
-        if (!standardComprado) {
-            preferencias.edit()
-                    .putBoolean("coche_" + R.drawable.car1 + "_comprado", true)
-                    .apply();
-        }
-
+        preferencias.edit().putBoolean("coche_0_comprado", true).apply(); //El primero esta comprado por defecto
         // Ahora, para el resto de coches, leemos si están comprados
         for (ShopItem item : itemsTienda) {
             // Evitamos sobreescribir el valor true del Standard si ya lo hemos forzado arriba
-            if (item.getImagenRes() != R.drawable.car1) {
-                item.setComprado(preferencias.getBoolean("coche_" + item.getId() + "_comprado", item.isComprado()));
-            }
+            item.setComprado(preferencias.getBoolean("coche_" + item.getId() + "_comprado", item.isComprado()));
         }
     }
 
     private void mostrarDialogoTienda() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_tienda, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+        Button btnCerrarTienda=dialogView.findViewById(R.id.btnCerrarTienda);
+        btnCerrarTienda.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
 
         RecyclerView recycler = dialogView.findViewById(R.id.recyclerTienda);
-         txtMonedas = dialogView.findViewById(R.id.txtMonedasDialog);
-
+        txtMonedas = dialogView.findViewById(R.id.txtMonedasDialog);
         monedasActuales = preferencias.getInt("monedas", 0);
         txtMonedas.setText("Monedas: " + monedasActuales);
-
         adapter = new TiendaAdapter(this, itemsTienda, this::manejarClicItem, monedasActuales);
         recycler.setLayoutManager(new GridLayoutManager(this, 2));
         recycler.setAdapter(adapter);
-
-        builder.setView(dialogView)
-                .setTitle("Tienda de Coches")
-                .setNegativeButton("Cerrar", (dialog, which) -> dialog.dismiss());
-
-        AlertDialog dialog = builder.create();
         dialog.show();
     }
 
     private void manejarClicItem(ShopItem item, int position) {
-
         if (item.isComprado()) {
             seleccionarCoche(item);
         } else {
             if (monedasActuales >= item.getPrecio()) {
-                comprarCoche(item, position);
+                comprarCoche(item);
             } else {
-                Toast.makeText(this, "Monedas insuficientes", Toast.LENGTH_SHORT).show();
+                playSound(errorSound);
             }
         }
     }
 
     private void seleccionarCoche(ShopItem item) {
-        getSharedPreferences("DatosJuego", MODE_PRIVATE).edit()
-                .putInt("coche_seleccionado", item.getId())
-                .apply();
-
-        Toast.makeText(this, item.getNombre() + " seleccionado", Toast.LENGTH_SHORT).show();
+        if(carIndex!=item.getId()){
+            carIndex=item.getId();
+            adapter.notifyDataSetChanged();
+            binding.imgCar.setImageBitmap(BitmapFactory.decodeResource(getResources(), cars[carIndex]));
+            playSound(selectSound);
+        }
     }
 
-    private void comprarCoche(ShopItem item, int position) {
+    private void comprarCoche(ShopItem item) {
         monedasActuales -= item.getPrecio();
         item.setComprado(true);
-
-        preferencias.edit()
-                .putInt("monedas", monedasActuales)
-                .putBoolean("coche_"+item.getId()+"_comprado", true)
-                .apply();
-
+        preferencias.edit().putInt("monedas", monedasActuales).putBoolean("coche_"+item.getId()+"_comprado", true).apply();
         adapter.notifyDataSetChanged();
         binding.txtCoins.setText(String.valueOf(monedasActuales));
         txtMonedas.setText("Monedas: "+monedasActuales);
@@ -288,10 +261,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean isCarPurchased(int index){
-        //cogo el resourceId del coche en la posicion del array
-
-        int carResId=cars[index];
-        return preferencias.getBoolean("coche_" + carResId + "_comprado", false);
+        boolean comprado=preferencias.getBoolean("coche_" + carIndex + "_comprado", false);
+        System.out.println(index+" "+comprado);
+        return preferencias.getBoolean("coche_" + carIndex + "_comprado", false);
     }
 
 
@@ -396,6 +368,8 @@ public class MainActivity extends AppCompatActivity {
         okaySound = soundPoolMain.load(this, R.raw.okay, 1);
         coinSound = soundPoolMain.load(this, R.raw.coin, 1);
         carStartSound=soundPoolMain.load(this,R.raw.carstart,1);
+        errorSound=soundPoolMain.load(this,R.raw.error,1);
+        selectSound=soundPoolMain.load(this,R.raw.select,1);
     }
 
     private void changeCar(int direccion) { //Direccion es -1 a la izquierda, 1 a la derecha

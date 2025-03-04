@@ -50,27 +50,27 @@ public class TiendaAdapter extends RecyclerView.Adapter<TiendaAdapter.ViewHolder
         holder.txtNombre.setText(item.getNombre());
 
         if (item.isComprado()) {
-            // Si ya está comprado, mostramos "Seleccionar"
-            holder.btnAccion.setText("Seleccionar");
-            holder.txtPrecio.setVisibility(View.GONE);
-            holder.btnAccion.setBackgroundColor(ContextCompat.getColor(context, R.color.verde));
+            // Si ya está comprado, mostramos "Seleccionar" y no mostramos el precio
+            holder.txtPrecio.setVisibility(View.INVISIBLE);
+            if(position==MainActivity.carIndex){
+                holder.btnAccion.setText("Seleccionado");
+                holder.btnAccion.setBackgroundColor(ContextCompat.getColor(context, R.color.car1blue));
+            }
+            else{
+                holder.btnAccion.setText("Seleccionar");
+                holder.btnAccion.setBackgroundColor(ContextCompat.getColor(context, R.color.verde));
+            }
         } else {
             // Si no está comprado, mostramos el precio y el botón "Comprar"
             holder.txtPrecio.setText(String.format("%d monedas", item.getPrecio()));
             holder.btnAccion.setText("Comprar");
             holder.txtPrecio.setVisibility(View.VISIBLE);
-            holder.btnAccion.setEnabled(monedasActuales >= item.getPrecio());
-            holder.btnAccion.setBackgroundColor(ContextCompat.getColor(
-                    context,
-                    (monedasActuales >= item.getPrecio()) ? R.color.azul : R.color.gris_deshabilitado
+            holder.btnAccion.setBackgroundColor(ContextCompat.getColor(context, (monedasActuales >= item.getPrecio()) ? R.color.gold : R.color.gris_deshabilitado
             ));
         }
 
         // Manejar clic en el botón
         holder.btnAccion.setOnClickListener(v -> {
-            // Si no está comprado y no hay suficientes monedas, no hacemos nada
-            if (!item.isComprado() && monedasActuales < item.getPrecio()) return;
-            // En caso contrario, se notifica al listener
             listener.onItemClick(item, position);
         });
     }
@@ -78,15 +78,6 @@ public class TiendaAdapter extends RecyclerView.Adapter<TiendaAdapter.ViewHolder
     @Override
     public int getItemCount() {
         return items.size();
-    }
-
-    /**
-     * Permite actualizar las monedas actuales y refrescar la lista.
-     * Útil si cambias las monedas desde fuera y quieres que se refleje en los ítems.
-     */
-    public void setMonedasActuales(int nuevasMonedas) {
-        this.monedasActuales = nuevasMonedas;
-        notifyDataSetChanged();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -102,4 +93,5 @@ public class TiendaAdapter extends RecyclerView.Adapter<TiendaAdapter.ViewHolder
             btnAccion = itemView.findViewById(R.id.btnComprar);
         }
     }
+
 }
