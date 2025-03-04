@@ -20,10 +20,12 @@ import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -35,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 
 import edu.pmdm.turbogranny.databinding.ActivityMainBinding;
 
@@ -54,6 +57,10 @@ public class MainActivity extends AppCompatActivity {
 
     private SoundPool soundPoolMain;
     int changeCarSound, buySound, okaySound, coinSound, carStartSound;
+
+    private List<ShopItem> itemsTienda = new ArrayList<>();
+    private TiendaAdapter adapter;
+    private int monedasActuales;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,7 +156,93 @@ public class MainActivity extends AppCompatActivity {
         carX = carLocation[0];
         animarBotones();
         animarMoneda();
+
+        adapter = new TiendaAdapter(this, itemsTienda, this::manejarClicItem, monedasActuales);
+
+
+        binding.imgBtnShop.setOnClickListener(v -> mostrarDialogoTienda());
+        inicializarItemsTienda();
     }
+
+    private void inicializarItemsTienda() {
+        itemsTienda.clear();
+        itemsTienda.add(new ShopItem(R.drawable.car1, "Classic", 0, true));
+        itemsTienda.add(new ShopItem(R.drawable.car2, "Lightning", 50));
+        itemsTienda.add(new ShopItem(R.drawable.car3, "Fury", 100));
+        itemsTienda.add(new ShopItem(R.drawable.car4, "GrannyCar", 125));
+        itemsTienda.add(new ShopItem(R.drawable.car5, "Off-Road", 150));
+        itemsTienda.add(new ShopItem(R.drawable.car6, "GrannyCar", 200));
+        itemsTienda.add(new ShopItem(R.drawable.car7, "Vortex", 210));
+
+
+
+
+        SharedPreferences prefs = getSharedPreferences("DatosJuego", MODE_PRIVATE);
+        for (ShopItem item : itemsTienda) {
+            item.setComprado(prefs.getBoolean("coche_" + item.getId() + "_comprado", item.isComprado()));
+        }
+    }
+
+    private void mostrarDialogoTienda() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_tienda, null);
+
+        RecyclerView recycler = dialogView.findViewById(R.id.recyclerTienda);
+        TextView txtMonedas = dialogView.findViewById(R.id.txtMonedasDialog);
+
+        monedasActuales = getSharedPreferences("DatosJuego", MODE_PRIVATE).getInt("monedas", 0);
+        txtMonedas.setText("Monedas: " + monedasActuales);
+
+        adapter = new TiendaAdapter(this, itemsTienda, this::manejarClicItem, monedasActuales);
+        recycler.setLayoutManager(new GridLayoutManager(this, 2));
+        recycler.setAdapter(adapter);
+
+        builder.setView(dialogView)
+                .setTitle("Tienda de Coches")
+                .setNegativeButton("Cerrar", (dialog, which) -> dialog.dismiss());
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    private void manejarClicItem(ShopItem item, int position) {
+        SharedPreferences prefs = getSharedPreferences("DatosJuego", MODE_PRIVATE);
+
+        if (item.isComprado()) {
+            seleccionarCoche(item);
+        } else {
+            if (monedasActuales >= item.getPrecio()) {
+                comprarCoche(item, position, prefs);
+            } else {
+                Toast.makeText(this, "Monedas insuficientes", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void seleccionarCoche(ShopItem item) {
+        getSharedPreferences("DatosJuego", MODE_PRIVATE).edit()
+                .putInt("coche_seleccionado", item.getId())
+                .apply();
+
+        Toast.makeText(this, item.getNombre() + " seleccionado", Toast.LENGTH_SHORT).show();
+    }
+
+    private void comprarCoche(ShopItem item, int position, SharedPreferences prefs) {
+        monedasActuales -= item.getPrecio();
+        item.setComprado(true);
+
+        prefs.edit()
+                .putInt("monedas", monedasActuales)
+                .putBoolean("coche_"+item.getId()+"_comprado", true)
+                .apply();
+
+        adapter.notifyItemChanged(position);
+        binding.txtCoins.setText(String.valueOf(monedasActuales));
+        Toast.makeText(this, "¡Compra exitosa!", Toast.LENGTH_SHORT).show();
+    }
+
+
 
     private void dialogoNickname() {
         LayoutInflater inflater = getLayoutInflater();

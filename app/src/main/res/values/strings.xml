@@ -8,4 +8,5 @@
     <string name="nickname">Nickname</string>
     <string name="records">Records</string>
     <string name="pausa_mensaje">¿Quieres reanudar la partida o salir?</string>
+    <string name="comprar">Comprar</string>
 </resources>
