@@ -22,6 +22,7 @@ public class ActividadJuego extends AppCompatActivity {
 
     Juego j;
     private boolean juegoPausado = false;
+    private boolean dialogoPausaActivo=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,12 +46,13 @@ public class ActividadJuego extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (juegoPausado) {
-            mostrarDialogoReanudar();
+        if (juegoPausado && j.partidaActiva) {
+            if(!dialogoPausaActivo)mostrarDialogoReanudar();
         }
     }
 
     private void mostrarDialogoReanudar() {
+        dialogoPausaActivo=true;
         LayoutInflater inflater = getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_pause, null);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -66,12 +68,15 @@ public class ActividadJuego extends AppCompatActivity {
                 juegoPausado = false;
                 j.reanudarJuego();
                 dialog.dismiss();
+                dialogoPausaActivo=false;
             }
         });
         btnExit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 j.terminarPartida(); //Terminamos la partida
+                dialog.dismiss();
+                dialogoPausaActivo=false;
                 finish(); //Cerramos la actividad
             }
         });

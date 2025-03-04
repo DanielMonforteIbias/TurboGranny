@@ -8,4 +8,59 @@
     <string name="nickname">Nickname</string>
     <string name="records">Records</string>
     <string name="pausa_mensaje">¿Quieres reanudar la partida o salir?</string>
+    <string name="game_over">GAME OVER</string>
+    <string name="resumen_puntos">Puntos obtenidos: </string>
+    <string name="resumen_monedas">Monedas conseguidas: </string>
+    <string name="resumen_choques">Coches chocados: </string>
+    <string name="resumen_nivel">Nivel alcanzado: </string>
+    <string name="terminar">TERMINAR</string>
+
+    <string name="opciones">OPCIONES</string>
+    <string name="tutorial">TUTORIAL</string>
+    <string name="cambiar_nickname">CAMBIAR NICKNAME</string>
+
+    <string name="monedas">MONEDAS</string>
+    <string name="vidas">VIDAS</string>
+    <string name="pow">POW</string>
+    <string name="enemigos">ENEMIGOS</string>
+    <string name="controles">CONTROLES</string>
+    <string name="dificultad">DIFICULTAD</string>
+
+
+    <string name="text_tutorial_1">Turbo Granny es un juego de tipo runner vertical en el que controlas a una abuela desorientada abriéndose camino entre el tráfico</string>
+    <string name="text_tutorial_2">Tu objetivo es obtener la mayor cantidad de puntos posible. Puedes obtener puntos aguantando el máximo tiempo posible, y obtienes puntos extra al recoger monedas o potenciadores. Perderás puntos si chocas con otros coches</string>
+    <string name="text_tutorial_3">A la izquierda encontrarás las vidas restantes. A la derecha encontrarás los puntos actuales</string>
+    <string name="text_tutorial_4">Durante la partida se generarán diversos elementos con los que puedes interactuar</string>
+    <string name="text_tutorial_choques">Evita chocar con los enemigos o perderás una vida (y probablemente acabarás con la vida de alguien)</string>
+    <string name="text_tutorial_vidas">Atento a las vidas que se generen! Te permitirán aguantar un impacto más</string>
+    <string name="text_tutorial_pow">El potenciador POW despejará la carretera eliminando todos los coches presentes.</string>
+
+    <string name="text_tutorial_controles">Pulsa alrededor de tu coche para moverte. La dirección en la que se moverá el coche depende de su posición.</string>
+    <string name="text_tutorial_controles2">Pulsa encima suya si quieres avanzar, detrás suya si quieres retroceder o a su nivel si te quieres mantener horizontalmente donde estás</string>
+    <string name="text_tutorial_controles3">Pulsa a su izquierda o a su derecha para girar a los lados. Puedes combinar este movimiento con el vertical, de forma que si pulsas arriba a su izquierda, avanzarás hacia delante y girarás a la izquierda a la vez</string>
+
+    <string name="text_tutorial_dificultad1">Cada 30 segundos, aumentará la dificultad del juego. Podrás reconocerlo al ver un texto de Lvl Up! en pantalla y al escuchar un sonido característico</string>
+    <string name="text_tutorial_dificultad2">La subida de nivel hará que los enemigos puedan ir más rápido, y también que aparezcan más en menos tiempo</string>
+    <string name="text_tutorial_dificultad3">Pero subir de dificultad también te dará un bonus de puntos. Trata de llegar al máximo nivel posible!</string>
+
+    <string-array name="mensajes">
+        <item>Bienvenido a Turbo Granny!</item>
+        <item>Bate los récords para entrar en el top 5</item>
+        <item>Decide tus movimientos sabiamente</item>
+        <item>Presta atención al tráfico</item>
+        <item>Evita los obstáculos para llegar más lejos</item>
+        <item>Atento a las vidas extra!</item>
+        <item>Coger monedas y potenciadores suma puntos</item>
+        <item>El POW es muy poderoso, intenta cogerlo!</item>
+        <item>Puedes cambiar tu nickname pulsando en él!</item>
+        <item>No consigues batir tu récord? Tómate un descanso</item>
+        <item>Chocarte, además de restar una vida, quita puntos</item>
+        <item>Escoge el coche que más te guste</item>
+        <item>Te cuesta entender el juego? Echa un vistazo al tutorial dentro de opciones</item>
+        <item>Hasta qué dificultad serás capaz de llegar?</item>
+        <item>Al subir de nivel habrá más enemigos y podrán ir más rápido!</item>
+        <item>Subir de dificultad te dará un bonus de puntos</item>
+        <item>Carrera senil</item>
+    </string-array>
+
 </resources>

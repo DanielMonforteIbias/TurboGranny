@@ -15,6 +15,7 @@ public class Pow {
     private float posX, posY;
     private final float velocidad = 35f;
     private boolean activa = true;
+    public final int PUNTOS=1000;
 
     public Pow(Juego juego, Bitmap spriteSheet, float x, float y) {
         this.juego = juego;

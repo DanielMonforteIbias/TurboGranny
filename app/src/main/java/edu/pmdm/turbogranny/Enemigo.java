@@ -16,7 +16,7 @@ public class Enemigo {
     public int spriteHeight, spriteWidth;
     public float posX, posY;
     public float velX, velY;
-    private float minSpeed = 10; // necesitamos una velocidad minima para no quedar atascados
+    private float minSpeed; // necesitamos una velocidad minima para no quedar atascados
     private boolean activo;
     public final int PUNTOS=-270;
     private MediaPlayer mediaPlayer;
@@ -26,9 +26,10 @@ public class Enemigo {
         this.sprite = sprite;
         this.spriteHeight = sprite.getHeight();
         this.spriteWidth = sprite.getWidth();
+        minSpeed=juego.velMinEnemigos;
         this.posX = new Random().nextInt(juego.maxX - spriteWidth);
         this.posY = -spriteHeight;
-        this.velY = (float)((Math.random()*20)+11);
+        this.velY = (float)((Math.random()*20)+minSpeed);
         this.activo=true;
         int claxonIndex=new Random().nextInt(juego.claxonSonidos.length);
         mediaPlayer = MediaPlayer.create(j.getContext(), juego.claxonSonidos[claxonIndex]);
@@ -46,12 +47,13 @@ public class Enemigo {
         for (Enemigo otroEnemigo : otrosEnemigos) {
             if (otroEnemigo != this && this.chocara(otroEnemigo)) {
                 // Si colisiona, ajustamos la velocidad
-                if (this.velY <= 5) {
-                    this.velY += 5; // Aumentamos la velocidad en 5 unidades
+                if (this.posY < otroEnemigo.posY) {
+                    this.velY-=5;
+                    otroEnemigo.velY+=1;
                 } else {
-                    this.velY = Math.min(this.velY, otroEnemigo.velY - 5); // restamos
+                    this.velY+=1;
+                    otroEnemigo.velY-=5;
                 }
-                otroEnemigo.velY+=1;
                 // nos aseguramos que la velocidad no sea menor que un valor mínimo
                 this.velY = Math.max(this.velY, minSpeed);
                 otroEnemigo.velY = Math.max(otroEnemigo.velY, minSpeed);
@@ -88,7 +90,6 @@ public class Enemigo {
                     }
 
                     // Asegura que la velocidad no sea menor que un valor mínimo
-                    float minSpeed = 10; // Velocidad mínima para evitar que se queden atascados
                     this.velY = Math.max(this.velY, minSpeed);
                 }
             }
