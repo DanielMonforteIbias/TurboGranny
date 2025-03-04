@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private List<ShopItem> itemsTienda = new ArrayList<>();
     private TiendaAdapter adapter;
     private int monedasActuales;
-
+    private TextView txtMonedas;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,8 +94,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (!changingCar) {
-                    carIndex = (carIndex - 1 + cars.length) % cars.length; //Nos movemos 1 hacia atras, asegurando que vaya al ultimo si estamos en el primero
-                    changeCar(-1);
+                    do {
+                        carIndex = (carIndex - 1 + cars.length) % cars.length; //Nos movemos 1 hacia atras, asegurando que vaya al ultimo si estamos en el primero
+                    }while(!isCarPurchased(carIndex));
+                        changeCar(-1);
                     playSound(changeCarSound);
                 }
             }
@@ -104,7 +106,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (!changingCar) {
-                    carIndex = (carIndex + 1) % cars.length; //Nos movemos 1 hacia delante, asegurando que vaya al primero si estamos en el ultimo
+                    do {
+                        carIndex = (carIndex + 1) % cars.length; //Nos movemos 1 hacia delante, asegurando que vaya al primero si estamos en el ultimo
+                    }while(!isCarPurchased(carIndex));
                     changeCar(1);
                     playSound(changeCarSound);
                 }
@@ -177,9 +181,20 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        SharedPreferences prefs = getSharedPreferences("DatosJuego", MODE_PRIVATE);
+        // Asegurarnos de que el coche estándar figure como comprado en SharedPreferences
+        boolean standardComprado = preferencias.getBoolean("coche_" + R.drawable.car1 + "_comprado", false);
+        if (!standardComprado) {
+            preferencias.edit()
+                    .putBoolean("coche_" + R.drawable.car1 + "_comprado", true)
+                    .apply();
+        }
+
+        // Ahora, para el resto de coches, leemos si están comprados
         for (ShopItem item : itemsTienda) {
-            item.setComprado(prefs.getBoolean("coche_" + item.getId() + "_comprado", item.isComprado()));
+            // Evitamos sobreescribir el valor true del Standard si ya lo hemos forzado arriba
+            if (item.getImagenRes() != R.drawable.car1) {
+                item.setComprado(preferencias.getBoolean("coche_" + item.getId() + "_comprado", item.isComprado()));
+            }
         }
     }
 
@@ -189,9 +204,9 @@ public class MainActivity extends AppCompatActivity {
         View dialogView = inflater.inflate(R.layout.dialog_tienda, null);
 
         RecyclerView recycler = dialogView.findViewById(R.id.recyclerTienda);
-        TextView txtMonedas = dialogView.findViewById(R.id.txtMonedasDialog);
+         txtMonedas = dialogView.findViewById(R.id.txtMonedasDialog);
 
-        monedasActuales = getSharedPreferences("DatosJuego", MODE_PRIVATE).getInt("monedas", 0);
+        monedasActuales = preferencias.getInt("monedas", 0);
         txtMonedas.setText("Monedas: " + monedasActuales);
 
         adapter = new TiendaAdapter(this, itemsTienda, this::manejarClicItem, monedasActuales);
@@ -207,13 +222,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void manejarClicItem(ShopItem item, int position) {
-        SharedPreferences prefs = getSharedPreferences("DatosJuego", MODE_PRIVATE);
 
         if (item.isComprado()) {
             seleccionarCoche(item);
         } else {
             if (monedasActuales >= item.getPrecio()) {
-                comprarCoche(item, position, prefs);
+                comprarCoche(item, position);
             } else {
                 Toast.makeText(this, "Monedas insuficientes", Toast.LENGTH_SHORT).show();
             }
@@ -228,20 +242,27 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, item.getNombre() + " seleccionado", Toast.LENGTH_SHORT).show();
     }
 
-    private void comprarCoche(ShopItem item, int position, SharedPreferences prefs) {
+    private void comprarCoche(ShopItem item, int position) {
         monedasActuales -= item.getPrecio();
         item.setComprado(true);
 
-        prefs.edit()
+        preferencias.edit()
                 .putInt("monedas", monedasActuales)
                 .putBoolean("coche_"+item.getId()+"_comprado", true)
                 .apply();
 
-        adapter.notifyItemChanged(position);
+        adapter.notifyDataSetChanged();
         binding.txtCoins.setText(String.valueOf(monedasActuales));
-        Toast.makeText(this, "¡Compra exitosa!", Toast.LENGTH_SHORT).show();
+        txtMonedas.setText("Monedas: "+monedasActuales);
+        playSound(buySound);
     }
 
+    private boolean isCarPurchased(int index){
+        //cogo el resourceId del coche en la posicion del array
+
+        int carResId=cars[index];
+        return preferencias.getBoolean("coche_" + carResId + "_comprado", false);
+    }
 
 
     private void dialogoNickname() {
