@@ -65,7 +65,7 @@
             android:shadowDx="8"
             android:shadowDy="8"
             android:shadowRadius="5"
-            android:text="@string/cancelar"
+            android:text="@string/cerrar"
             android:textColor="@color/white" />
     </LinearLayout>
 </LinearLayout>

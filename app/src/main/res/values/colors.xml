@@ -6,4 +6,8 @@
     <color name="car1blue">#2492FF</color>
     <color name="car2yellow">#D9E620</color>
     <color name="pavement">#575657</color>
+    <color name="verde">#4CAF50</color>
+    <color name="azul">#2196F3</color>
+    <color name="gris_deshabilitado">#9E9E9E</color>
+    <color name="gold">#FFD700</color>
 </resources>

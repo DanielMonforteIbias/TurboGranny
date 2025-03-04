@@ -4,10 +4,12 @@
     <string name="start">START</string>
     <string name="aceptar">Aceptar</string>
     <string name="cancelar">Cancelar</string>
+    <string name="cerrar">Cerrar</string>
     <string name="pausa">Juego en pausa</string>
     <string name="nickname">Nickname</string>
     <string name="records">Records</string>
     <string name="pausa_mensaje">¿Quieres reanudar la partida o salir?</string>
+    <string name="comprar">Comprar</string>
     <string name="game_over">GAME OVER</string>
     <string name="resumen_puntos">Puntos obtenidos: </string>
     <string name="resumen_monedas">Monedas conseguidas: </string>
@@ -18,6 +20,7 @@
     <string name="opciones">OPCIONES</string>
     <string name="tutorial">TUTORIAL</string>
     <string name="cambiar_nickname">CAMBIAR NICKNAME</string>
+    <string name="tienda">TIENDA</string>
 
     <string name="monedas">MONEDAS</string>
     <string name="vidas">VIDAS</string>
@@ -55,7 +58,9 @@
         <item>Puedes cambiar tu nickname pulsando en él!</item>
         <item>No consigues batir tu récord? Tómate un descanso</item>
         <item>Chocarte, además de restar una vida, quita puntos</item>
-        <item>Escoge el coche que más te guste</item>
+        <item>Utiliza las flechas para elegir entre los coches que tienes</item>
+        <item>Pásate por la tienda para comprar coches nuevos con tus monedas!</item>
+        <item>Escoge el coche que más te guste, si es que te lo puedes permitir</item>
         <item>Te cuesta entender el juego? Echa un vistazo al tutorial dentro de opciones</item>
         <item>Hasta qué dificultad serás capaz de llegar?</item>
         <item>Al subir de nivel habrá más enemigos y podrán ir más rápido!</item>

@@ -27,7 +27,10 @@ public class ActividadJuego extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        int carId=getIntent().getIntExtra("carId",R.drawable.car1); //Por defecto sera el coche1
+// En ActividadJuego.java al obtener el carId
+        int carId = getIntent().getIntExtra("carId",
+                getSharedPreferences("DatosJuego", MODE_PRIVATE)
+                        .getInt("coche_seleccionado", R.drawable.car1));
         j = new Juego(this);
         setContentView(j);
         j.carId=carId;
