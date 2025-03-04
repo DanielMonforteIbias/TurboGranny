@@ -21,10 +21,12 @@ import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -36,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 
 import edu.pmdm.turbogranny.databinding.ActivityMainBinding;
 
@@ -57,6 +60,10 @@ public class MainActivity extends AppCompatActivity {
     private SoundPool soundPoolMain;
     int changeCarSound, buySound, okaySound, coinSound, carStartSound;
 
+    private List<ShopItem> itemsTienda = new ArrayList<>();
+    private TiendaAdapter adapter;
+    private int monedasActuales;
+    private TextView txtMonedas;
     private String[] consejos;
     private final int delayConsejos=5000;
     private Handler handlerConsejos=new Handler();
@@ -100,8 +107,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (!changingCar) {
-                    carIndex = (carIndex - 1 + cars.length) % cars.length; //Nos movemos 1 hacia atras, asegurando que vaya al ultimo si estamos en el primero
-                    changeCar(-1);
+                    do {
+                        carIndex = (carIndex - 1 + cars.length) % cars.length; //Nos movemos 1 hacia atras, asegurando que vaya al ultimo si estamos en el primero
+                    }while(!isCarPurchased(carIndex));
+                        changeCar(-1);
                     playSound(changeCarSound);
                 }
             }
@@ -110,7 +119,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (!changingCar) {
-                    carIndex = (carIndex + 1) % cars.length; //Nos movemos 1 hacia delante, asegurando que vaya al primero si estamos en el ultimo
+                    do {
+                        carIndex = (carIndex + 1) % cars.length; //Nos movemos 1 hacia delante, asegurando que vaya al primero si estamos en el ultimo
+                    }while(!isCarPurchased(carIndex));
                     changeCar(1);
                     playSound(changeCarSound);
                 }
@@ -179,7 +190,110 @@ public class MainActivity extends AppCompatActivity {
         txtMessageX = txtMessageLocation[0];
         animarBotones();
         animarMoneda();
+
+        adapter = new TiendaAdapter(this, itemsTienda, this::manejarClicItem, monedasActuales);
+
+
+        binding.imgBtnShop.setOnClickListener(v -> mostrarDialogoTienda());
+        inicializarItemsTienda();
     }
+
+    private void inicializarItemsTienda() {
+        itemsTienda.clear();
+        itemsTienda.add(new ShopItem(R.drawable.car1, "Classic", 0, true));
+        itemsTienda.add(new ShopItem(R.drawable.car2, "Lightning", 50));
+        itemsTienda.add(new ShopItem(R.drawable.car3, "Fury", 100));
+        itemsTienda.add(new ShopItem(R.drawable.car4, "GrannyCar", 125));
+        itemsTienda.add(new ShopItem(R.drawable.car5, "Off-Road", 150));
+        itemsTienda.add(new ShopItem(R.drawable.car6, "GrannyCar", 200));
+        itemsTienda.add(new ShopItem(R.drawable.car7, "Vortex", 210));
+
+
+
+
+        // Asegurarnos de que el coche estándar figure como comprado en SharedPreferences
+        boolean standardComprado = preferencias.getBoolean("coche_" + R.drawable.car1 + "_comprado", false);
+        if (!standardComprado) {
+            preferencias.edit()
+                    .putBoolean("coche_" + R.drawable.car1 + "_comprado", true)
+                    .apply();
+        }
+
+        // Ahora, para el resto de coches, leemos si están comprados
+        for (ShopItem item : itemsTienda) {
+            // Evitamos sobreescribir el valor true del Standard si ya lo hemos forzado arriba
+            if (item.getImagenRes() != R.drawable.car1) {
+                item.setComprado(preferencias.getBoolean("coche_" + item.getId() + "_comprado", item.isComprado()));
+            }
+        }
+    }
+
+    private void mostrarDialogoTienda() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_tienda, null);
+
+        RecyclerView recycler = dialogView.findViewById(R.id.recyclerTienda);
+         txtMonedas = dialogView.findViewById(R.id.txtMonedasDialog);
+
+        monedasActuales = preferencias.getInt("monedas", 0);
+        txtMonedas.setText("Monedas: " + monedasActuales);
+
+        adapter = new TiendaAdapter(this, itemsTienda, this::manejarClicItem, monedasActuales);
+        recycler.setLayoutManager(new GridLayoutManager(this, 2));
+        recycler.setAdapter(adapter);
+
+        builder.setView(dialogView)
+                .setTitle("Tienda de Coches")
+                .setNegativeButton("Cerrar", (dialog, which) -> dialog.dismiss());
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    private void manejarClicItem(ShopItem item, int position) {
+
+        if (item.isComprado()) {
+            seleccionarCoche(item);
+        } else {
+            if (monedasActuales >= item.getPrecio()) {
+                comprarCoche(item, position);
+            } else {
+                Toast.makeText(this, "Monedas insuficientes", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void seleccionarCoche(ShopItem item) {
+        getSharedPreferences("DatosJuego", MODE_PRIVATE).edit()
+                .putInt("coche_seleccionado", item.getId())
+                .apply();
+
+        Toast.makeText(this, item.getNombre() + " seleccionado", Toast.LENGTH_SHORT).show();
+    }
+
+    private void comprarCoche(ShopItem item, int position) {
+        monedasActuales -= item.getPrecio();
+        item.setComprado(true);
+
+        preferencias.edit()
+                .putInt("monedas", monedasActuales)
+                .putBoolean("coche_"+item.getId()+"_comprado", true)
+                .apply();
+
+        adapter.notifyDataSetChanged();
+        binding.txtCoins.setText(String.valueOf(monedasActuales));
+        txtMonedas.setText("Monedas: "+monedasActuales);
+        playSound(buySound);
+    }
+
+    private boolean isCarPurchased(int index){
+        //cogo el resourceId del coche en la posicion del array
+
+        int carResId=cars[index];
+        return preferencias.getBoolean("coche_" + carResId + "_comprado", false);
+    }
+
 
     private void dialogoSettings(){
         LayoutInflater inflater = getLayoutInflater();
